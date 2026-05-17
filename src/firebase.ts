@@ -1,5 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
+import { getAuth, signInAnonymously } from 'firebase/auth';
 
 const firebaseConfig = {
   projectId: "phat-force-6q7jp",
@@ -13,3 +14,10 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app, "ai-studio-a601d947-18e0-4de4-b708-bbaa8132339a");
+export const auth = getAuth(app);
+
+export async function ensureAuth() {
+  if (!auth.currentUser) {
+    await signInAnonymously(auth);
+  }
+}
