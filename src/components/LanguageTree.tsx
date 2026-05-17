@@ -6,11 +6,12 @@ interface Props {
   languages: Language[];
   onSelect: (lang: Language) => void;
   selectedId?: string;
+  fontSize?: number;
 }
 
 const VIRTUAL_ROOT_ID = '__world_root__';
 
-export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId }) => {
+export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId, fontSize = 11 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
@@ -123,7 +124,7 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId 
       .attr('x', d => (d.children ? -14 : 14))
       .attr('text-anchor', d => (d.children ? 'end' : 'start'))
       .text(d => d.data.name)
-      .style('font-size', d => isRoot(d) ? '13px' : '11px')
+      .style('font-size', d => isRoot(d) ? `${fontSize + 2}px` : `${fontSize}px`)
       .style('font-family', '"Playfair Display", serif')
       .style('font-style', 'italic')
       .style('letter-spacing', '0.04em')
@@ -134,7 +135,7 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId 
       .attr('stroke-width', 4)
       .attr('stroke-linejoin', 'round');
 
-  }, [languages, dimensions, selectedId, onSelect]);
+  }, [languages, dimensions, selectedId, onSelect, fontSize]);
 
   return (
     <div ref={containerRef} className="w-full h-full relative overflow-hidden" style={{ background: '#0a0a0a' }}>

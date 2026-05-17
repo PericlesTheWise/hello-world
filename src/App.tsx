@@ -3,7 +3,7 @@ import { LanguageTree } from './components/LanguageTree';
 import { LanguageDetail } from './components/LanguageDetail';
 import { Language } from './types';
 import { getLanguages } from './services/languageService';
-import { Search, Share2 } from 'lucide-react';
+import { Search, Share2, ZoomIn, ZoomOut } from 'lucide-react';
 import { AnimatePresence } from 'motion/react';
 
 export default function App() {
@@ -11,6 +11,7 @@ export default function App() {
   const [selectedLanguage, setSelectedLanguage] = useState<Language | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
+  const [fontSize, setFontSize] = useState(11);
 
   useEffect(() => {
     async function init() {
@@ -73,6 +74,23 @@ export default function App() {
           <div className="text-right hidden sm:block">
             <p className="text-[10px] opacity-40 uppercase">Status</p>
             <p className="text-[11px] font-mono text-gold">{loading ? 'LOADING…' : 'LIVE'}</p>
+          </div>
+          <div className="flex items-center gap-1 border border-gold/20 rounded-sm px-2 py-1">
+            <button
+              onClick={() => setFontSize(s => Math.max(8, s - 1))}
+              className="p-0.5 hover:text-gold transition-colors text-gold/50"
+              title="Decrease font size"
+            >
+              <ZoomOut className="w-3.5 h-3.5" />
+            </button>
+            <span className="text-[10px] font-mono text-gold/60 w-5 text-center select-none">{fontSize}</span>
+            <button
+              onClick={() => setFontSize(s => Math.min(18, s + 1))}
+              className="p-0.5 hover:text-gold transition-colors text-gold/50"
+              title="Increase font size"
+            >
+              <ZoomIn className="w-3.5 h-3.5" />
+            </button>
           </div>
           <button className="p-2 hover:bg-white/5 rounded-full transition-colors text-gold">
             <Share2 className="w-4 h-4" />
@@ -188,6 +206,7 @@ export default function App() {
               languages={filteredLanguages}
               onSelect={setSelectedLanguage}
               selectedId={selectedLanguage?.id}
+              fontSize={fontSize}
             />
           </div>
 
