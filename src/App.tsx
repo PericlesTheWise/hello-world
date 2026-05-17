@@ -2,7 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { LanguageTree } from './components/LanguageTree';
 import { LanguageDetail } from './components/LanguageDetail';
 import { Language } from './types';
-import { getLanguages, seedInitialData, SeedFallbackError } from './services/languageService';
+import { getLanguages } from './services/languageService';
 import { Search, Share2 } from 'lucide-react';
 import { AnimatePresence } from 'motion/react';
 
@@ -15,15 +15,10 @@ export default function App() {
   useEffect(() => {
     async function init() {
       try {
-        await seedInitialData();
         const data = await getLanguages();
         setLanguages(data);
       } catch (e) {
-        if (e instanceof SeedFallbackError) {
-          setLanguages(e.data);
-        } else {
-          console.error('Initialization error:', e);
-        }
+        console.error('Failed to load languages:', e);
       } finally {
         setLoading(false);
       }

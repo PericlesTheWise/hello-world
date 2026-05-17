@@ -1,16 +1,17 @@
 import express from "express";
 import path from "path";
-import { createServer as createViteServer } from "vite";
+import fs from "fs";
 import dotenv from "dotenv";
 
 dotenv.config();
 
 const app = express();
 const PORT = 3000;
+const DATA_FILE = path.join(process.cwd(), "data", "languages.json");
 
 app.use(express.json());
 
-const INITIAL_LANGUAGES = [
+const SEED_LANGUAGES = [
   { id: "pie", name: "Proto-Indo-European", parentLanguageId: null, family: "Indo-European", branch: "Root", approxDate: "4500–2500 BC", description: "The reconstructed common ancestor of the Indo-European language family, spoken on the Pontic-Caspian steppe.", region: "Pontic-Caspian steppe" },
   { id: "p-germanic", name: "Proto-Germanic", parentLanguageId: "pie", family: "Indo-European", branch: "Germanic", approxDate: "500 BC", description: "Ancestor of all Germanic languages, reconstructed from comparative evidence across descendants.", region: "Northern Europe" },
   { id: "p-italic", name: "Proto-Italic", parentLanguageId: "pie", family: "Indo-European", branch: "Italic", approxDate: "1500 BC", description: "The ancestor of the Italic branch, including Latin and its descendants.", region: "Italian Peninsula" },
@@ -63,8 +64,38 @@ const INITIAL_LANGUAGES = [
   { id: "azerbaijani", name: "Azerbaijani", parentLanguageId: "old-turkic", family: "Turkic", branch: "Oghuz", approxDate: "1100 AD", description: "A Turkic language spoken in Azerbaijan and northwestern Iran.", region: "South Caucasus" },
 ];
 
-app.get("/api/seed", (_req, res) => {
-  res.json(INITIAL_LANGUAGES);
+function loadLanguages() {
+  if (!fs.existsSync(DATA_FILE)) return null;
+  return JSON.parse(fs.readFileSync(DATA_FILE, "utf-8"));
+}
+
+function saveLanguages(data: typeof SEED_LANGUAGES) {
+  fs.mkdirSync(path.dirname(DATA_FILE), { recursive: true });
+  fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
+}
+
+// Seed on startup if no data file exists
+if (!fs.existsSync(DATA_FILE)) {
+  saveLanguages(SEED_LANGUAGES);
+  console.log(`Seeded ${SEED_LANGUAGES.length} languages to ${DATA_FILE}`);
+}
+
+app.get("/api/languages", (_req, res) => {
+  res.json(loadLanguages() ?? SEED_LANGUAGES);
+});
+
+app.post("/api/languages", (req, res) => {
+  const lang = req.body;
+  if (!lang?.id || !lang?.name) {
+    return res.status(400).json({ error: "id and name are required" });
+  }
+  const current = loadLanguages() ?? [...SEED_LANGUAGES];
+  if (current.find((l: { id: string }) => l.id === lang.id)) {
+    return res.status(409).json({ error: "language already exists" });
+  }
+  current.push(lang);
+  saveLanguages(current);
+  res.status(201).json(lang);
 });
 
 async function startServer() {
