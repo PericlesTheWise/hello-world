@@ -62,29 +62,33 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
       return;
     }
 
-    // Compute tree extents to fit-to-view on load
+    // Compute fit-to-view transform
     const allNodes = root.descendants().filter(d => d.data.id !== VIRTUAL_ROOT_ID);
     const xs = allNodes.map(d => d.x);
     const ys = allNodes.map(d => d.y);
-    const minX = Math.min(...xs), maxX = Math.max(...xs);
-    const minY = Math.min(...ys), maxY = Math.max(...ys);
-    const treeW = maxY - minY + 400;
-    const treeH = maxX - minX + 80;
-    const scale = Math.min(1, Math.min(dimensions.width / treeW, dimensions.height / treeH));
+    const minX = xs.reduce((a, b) => Math.min(a, b), Infinity);
+    const maxX = xs.reduce((a, b) => Math.max(a, b), -Infinity);
+    const minY = ys.reduce((a, b) => Math.min(a, b), Infinity);
+    const maxY = ys.reduce((a, b) => Math.max(a, b), -Infinity);
+    const treeW = (maxY - minY) + 400;
+    const treeH = (maxX - minX) + 80;
+    const scale = Math.min(0.9, Math.min(dimensions.width / treeW, dimensions.height / treeH));
     const tx = 120;
-    const ty = dimensions.height / 2 - (minX + maxX) / 2 * scale;
+    const ty = dimensions.height / 2 - ((minX + maxX) / 2) * scale;
+    const initialTransform = d3.zoomIdentity.translate(tx, ty).scale(scale);
 
     const svg = d3.select(svgRef.current);
     svg.selectAll('*').remove();
 
-    // Zoom/pan
+    // Create g first so zoom handler can reference it
+    const g = svg.append('g');
+
+    // Zoom/pan — apply initial transform after g exists
     const zoom = d3.zoom<SVGSVGElement, unknown>()
       .scaleExtent([0.05, 3])
       .on('zoom', (event) => g.attr('transform', event.transform));
     svg.call(zoom);
-    svg.call(zoom.transform, d3.zoomIdentity.translate(tx, ty).scale(scale));
-
-    const g = svg.append('g').attr('transform', `translate(${tx},${ty}) scale(${scale})`);
+    svg.call(zoom.transform, initialTransform);
 
     // Links
     g.selectAll('.link')
