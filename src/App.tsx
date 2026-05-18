@@ -6,12 +6,15 @@ import { getLanguages } from './services/languageService';
 import { Search, Share2, ZoomIn, ZoomOut } from 'lucide-react';
 import { AnimatePresence } from 'motion/react';
 
+type ViewMode = 'tree' | 'timeline';
+
 export default function App() {
   const [languages, setLanguages] = useState<Language[]>([]);
   const [selectedLanguage, setSelectedLanguage] = useState<Language | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [fontSize, setFontSize] = useState(11);
+  const [viewMode, setViewMode] = useState<ViewMode>('tree');
 
   useEffect(() => {
     async function init() {
@@ -68,6 +71,22 @@ export default function App() {
           <span className="opacity-40">
             {languages.length} Languages · {families.size} Families
           </span>
+        </div>
+
+        <div className="hidden md:flex items-center border border-gold/20 rounded-sm overflow-hidden text-[10px] font-mono uppercase tracking-[0.15em]">
+          <button
+            onClick={() => setViewMode('tree')}
+            className={`px-3 py-1.5 transition-colors ${viewMode === 'tree' ? 'bg-gold/20 text-gold' : 'text-gold/40 hover:text-gold/70 hover:bg-white/5'}`}
+          >
+            Complete View
+          </button>
+          <div className="w-px h-4 bg-gold/20" />
+          <button
+            onClick={() => setViewMode('timeline')}
+            className={`px-3 py-1.5 transition-colors ${viewMode === 'timeline' ? 'bg-gold/20 text-gold' : 'text-gold/40 hover:text-gold/70 hover:bg-white/5'}`}
+          >
+            Timeline View
+          </button>
         </div>
 
         <div className="flex items-center gap-4">
@@ -207,6 +226,7 @@ export default function App() {
               onSelect={setSelectedLanguage}
               selectedId={selectedLanguage?.id}
               fontSize={fontSize}
+              viewMode={viewMode}
             />
           </div>
 

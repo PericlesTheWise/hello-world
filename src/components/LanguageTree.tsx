@@ -7,10 +7,21 @@ interface Props {
   onSelect: (lang: Language) => void;
   selectedId?: string;
   fontSize?: number;
+  viewMode?: 'tree' | 'timeline';
 }
 
 const VIRTUAL_ROOT_ID = '__world_root__';
 const TRANSITION_MS = 280;
+
+function parseEarliestYear(approxDate?: string): number | null {
+  if (!approxDate) return null;
+  const s = approxDate.replace(/,/g, '').replace(/\+/g, '');
+  const numbers = s.match(/(\d+)/g);
+  if (!numbers) return null;
+  const isBCE = /BCE/i.test(s);
+  const values = numbers.map(n => isBCE ? -parseInt(n) : parseInt(n));
+  return isBCE ? Math.min(...values) : Math.min(...values);
+}
 
 function buildChildrenMap(languages: Language[]): Map<string, Language[]> {
   const map = new Map<string, Language[]>();
@@ -67,7 +78,7 @@ function isAncestor(node: d3.HierarchyPointNode<Language>, selectedId?: string):
   return false;
 }
 
-export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId, fontSize = 11 }) => {
+export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId, fontSize = 11, viewMode = 'tree' }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const gRef = useRef<d3.Selection<SVGGElement, unknown, null, undefined> | null>(null);
@@ -86,6 +97,10 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
     setExpandedIds(computeInitialExpanded(languages, childrenMap));
     fittedRef.current = false;
   }, [languages, childrenMap]);
+
+  useEffect(() => {
+    fittedRef.current = false;
+  }, [viewMode]);
 
   const visibleLanguages = useMemo(
     () => getVisibleLanguages(languages, expandedIds, childrenMap),
@@ -170,19 +185,29 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
 
     const g = gRef.current;
 
-    // ── Fit to view — only on first data render ───────────────────────────────
+    // ── Fit to view — only on first data render (or mode change) ─────────────
     if (!fittedRef.current && zoomRef.current) {
       const all = root.descendants().filter(d => d.data.id !== VIRTUAL_ROOT_ID);
-      const xs = all.map(d => d.x), ys = all.map(d => d.y);
+      const xs = all.map(d => d.x);
       const minX = xs.reduce((a, b) => Math.min(a, b), Infinity);
       const maxX = xs.reduce((a, b) => Math.max(a, b), -Infinity);
-      const minY = ys.reduce((a, b) => Math.min(a, b), Infinity);
-      const maxY = ys.reduce((a, b) => Math.max(a, b), -Infinity);
-      const scale = Math.min(0.9, Math.min(
-        dimensions.width  / ((maxY - minY) + 400),
-        dimensions.height / ((maxX - minX) + 80)
-      ));
-      const tx = 120, ty = dimensions.height / 2 - ((minX + maxX) / 2) * scale;
+      let tx: number, ty: number, scale: number;
+      if (viewMode === 'timeline') {
+        // In timeline mode y-axis spans the full visible width already; just center vertically
+        scale = Math.min(0.9, dimensions.height / ((maxX - minX) + 120));
+        tx = 0;
+        ty = dimensions.height / 2 - ((minX + maxX) / 2) * scale;
+      } else {
+        const ys = all.map(d => d.y);
+        const minY = ys.reduce((a, b) => Math.min(a, b), Infinity);
+        const maxY = ys.reduce((a, b) => Math.max(a, b), -Infinity);
+        scale = Math.min(0.9, Math.min(
+          dimensions.width  / ((maxY - minY) + 400),
+          dimensions.height / ((maxX - minX) + 80)
+        ));
+        tx = 120;
+        ty = dimensions.height / 2 - ((minX + maxX) / 2) * scale;
+      }
       svg.call(zoomRef.current.transform, d3.zoomIdentity.translate(tx, ty).scale(scale));
       fittedRef.current = true;
     } else {
@@ -197,8 +222,56 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
     const hasCh   = (d: d3.HierarchyPointNode<Language>) => (childrenMap.get(d.data.id)?.length ?? 0) > 0;
     const isExp   = (d: d3.HierarchyPointNode<Language>) => expandedIds.has(d.data.id);
     const r       = (d: d3.HierarchyPointNode<Language>) => isSel(d) ? 9 : isRoot(d) ? 7 : hasCh(d) ? 6 : 4;
-    const linkPath = d3.linkHorizontal<d3.HierarchyPointLink<Language>, d3.HierarchyPointNode<Language>>()
-      .x(d => d.y).y(d => d.x);
+
+    // ── Timeline positioning ──────────────────────────────────────────────────
+    const allNodes = root.descendants().filter(d => d.data.id !== VIRTUAL_ROOT_ID);
+    const yearScale = viewMode === 'timeline'
+      ? d3.scaleLinear().domain([-5000, 2100]).range([80, dimensions.width - 200]).clamp(true)
+      : null;
+
+    const getPos = (d: d3.HierarchyPointNode<Language>) => {
+      if (yearScale) {
+        const year = parseEarliestYear(d.data.approxDate);
+        return { x: d.x, y: year != null ? yearScale(year) : yearScale(-3000) };
+      }
+      return { x: d.x, y: d.y };
+    };
+
+    const linkPathFn = (d: d3.HierarchyPointLink<Language>) => {
+      const sp = getPos(d.source as d3.HierarchyPointNode<Language>);
+      const tp = getPos(d.target as d3.HierarchyPointNode<Language>);
+      const mx = (sp.y + tp.y) / 2;
+      return `M${sp.y},${sp.x}C${mx},${sp.x} ${mx},${tp.x} ${tp.y},${tp.x}`;
+    };
+
+    // ── Timeline axis ─────────────────────────────────────────────────────────
+    g.selectAll<SVGGElement, unknown>('g.timeline-axis').remove();
+    if (yearScale) {
+      const axisMaxX = allNodes.reduce((a, b) => Math.max(a, b.x), -Infinity);
+      const axisY = axisMaxX + 50;
+
+      const axisG = g.append('g').attr('class', 'timeline-axis');
+      const tickYears = [-5000, -4000, -3000, -2000, -1000, 0, 500, 1000, 1500, 2000];
+
+      axisG.append('line')
+        .attr('x1', yearScale(-5000)).attr('x2', yearScale(2100))
+        .attr('y1', axisY).attr('y2', axisY)
+        .attr('stroke', 'rgba(197,160,89,0.25)').attr('stroke-width', 1);
+
+      for (const yr of tickYears) {
+        const px = yearScale(yr);
+        axisG.append('line')
+          .attr('x1', px).attr('x2', px)
+          .attr('y1', axisY - 4).attr('y2', axisY + 4)
+          .attr('stroke', 'rgba(197,160,89,0.4)').attr('stroke-width', 1);
+        axisG.append('text')
+          .attr('x', px).attr('y', axisY + 16)
+          .attr('text-anchor', 'middle')
+          .style('font-size', '9px').style('font-family', 'monospace')
+          .style('fill', 'rgba(197,160,89,0.5)')
+          .text(yr < 0 ? `${Math.abs(yr)} BCE` : yr === 0 ? '0 CE' : `${yr} CE`);
+      }
+    }
 
     // ── Links — enter / update / exit ─────────────────────────────────────────
     const linkData = root.links().filter(l => l.source.data.id !== VIRTUAL_ROOT_ID);
@@ -209,24 +282,24 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
 
     const linkEnter = linkSel.enter().append('path')
       .attr('class', 'link').attr('fill', 'none')
-      .attr('d', linkPath).style('opacity', 0);
+      .attr('d', linkPathFn).style('opacity', 0);
 
     linkEnter.merge(linkSel)
       .transition(t)
       .style('opacity', 1)
       .attr('fill', 'none')
-      .attr('d', linkPath)
+      .attr('d', linkPathFn)
       .attr('stroke', d => {
-        const hi = isAncestor(d.source, selectedId) || isAncestor(d.target, selectedId);
+        const hi = isAncestor(d.source as d3.HierarchyPointNode<Language>, selectedId) || isAncestor(d.target as d3.HierarchyPointNode<Language>, selectedId);
         return hi ? 'rgba(197,160,89,0.7)' : 'rgba(197,160,89,0.18)';
       })
       .attr('stroke-width', d => {
-        const hi = isAncestor(d.source, selectedId) || isAncestor(d.target, selectedId);
+        const hi = isAncestor(d.source as d3.HierarchyPointNode<Language>, selectedId) || isAncestor(d.target as d3.HierarchyPointNode<Language>, selectedId);
         return hi ? 2 : 1;
       });
 
     // ── Nodes — enter / update / exit ─────────────────────────────────────────
-    const nodeData = root.descendants().filter(d => d.data.id !== VIRTUAL_ROOT_ID);
+    const nodeData = allNodes;
     const nodeSel  = g.selectAll<SVGGElement, d3.HierarchyPointNode<Language>>('g.node')
       .data(nodeData, d => d.data.id);
 
@@ -234,7 +307,7 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
 
     const nodeEnter = nodeSel.enter().append('g')
       .attr('class', 'node')
-      .attr('transform', d => `translate(${d.y},${d.x})`)
+      .attr('transform', d => { const p = getPos(d); return `translate(${p.y},${p.x})`; })
       .style('opacity', 0)
       .on('click', (_e, d) => handleNodeClickRef.current(d.data))
       .style('cursor', d => hasCh(d) ? 'pointer' : 'default');
@@ -270,7 +343,7 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
     // Position
     nodeAll.transition(t)
       .style('opacity', 1)
-      .attr('transform', d => `translate(${d.y},${d.x})`);
+      .attr('transform', d => { const p = getPos(d); return `translate(${p.y},${p.x})`; });
 
     // Circle
     nodeAll.select<SVGCircleElement>('.main-circle')
@@ -304,7 +377,7 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
       .style('fill', d => isSel(d) ? '#c5a059' : isRoot(d) ? '#d4bc8a' : '#e0d8cc')
       .style('opacity', d => isSel(d) ? 1 : 0.85);
 
-  }, [visibleLanguages, expandedIds, dimensions, selectedId, fontSize, childrenMap]);
+  }, [visibleLanguages, expandedIds, dimensions, selectedId, fontSize, childrenMap, viewMode]);
 
   return (
     <div ref={containerRef} className="w-full h-full relative overflow-hidden" style={{ background: '#0a0a0a' }}>
