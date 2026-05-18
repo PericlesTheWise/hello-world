@@ -8,10 +8,19 @@ dotenv.config();
 const app = express();
 const PORT = 3000;
 const DATA_FILE = path.join(process.cwd(), "data", "languages.json");
+const SEED_FILE = path.join(process.cwd(), "languages-seed.json");
 
 app.use(express.json());
 
-const SEED_LANGUAGES = [
+type Language = {
+  id: string; name: string; parentLanguageId: string | null;
+  family: string; branch?: string; approxDate?: string;
+  description?: string; region?: string;
+};
+
+const SEED_LANGUAGES: Language[] = JSON.parse(fs.readFileSync(SEED_FILE, "utf-8"));
+
+const PLACEHOLDER = [
   // ── INDO-EUROPEAN ────────────────────────────────────────────────────────
   { id: "pie", name: "Proto-Indo-European", parentLanguageId: null, family: "Indo-European", branch: "Root", approxDate: "4500–2500 BC", description: "The reconstructed common ancestor of the Indo-European language family, spoken on the Pontic-Caspian steppe.", region: "Pontic-Caspian steppe" },
 
@@ -278,17 +287,23 @@ const SEED_LANGUAGES = [
   { id: "zhuang", name: "Zhuang", parentLanguageId: "proto-tai-kadai", family: "Tai-Kadai", branch: "Tai", approxDate: "1000 AD", description: "The most spoken non-Mandarin language of China, spoken by the Zhuang people of Guangxi.", region: "Guangxi, China" },
 
   // ── LANGUAGE ISOLATES & OTHER ─────────────────────────────────────────────
-  { id: "basque", name: "Basque", parentLanguageId: null, family: "Language Isolate", branch: "Isolate", approxDate: "1000 BC", description: "A pre-Indo-European language isolate of the western Pyrenees, unrelated to any known language.", region: "Basque Country" },
-  { id: "sumerian", name: "Sumerian", parentLanguageId: null, family: "Language Isolate", branch: "Isolate", approxDate: "3100 BC", description: "The earliest known written language, spoken in ancient Mesopotamia until about 2000 BC.", region: "Mesopotamia" },
-  { id: "elamite", name: "Elamite", parentLanguageId: null, family: "Language Isolate", branch: "Isolate", approxDate: "2300 BC", description: "An extinct language of ancient Elam (southwest Iran), possibly related to Dravidian.", region: "Elam (modern Iran)" },
 ];
+// PLACEHOLDER array is unused — SEED_LANGUAGES is loaded from languages-seed.json above
 
-function loadLanguages() {
-  if (!fs.existsSync(DATA_FILE)) return null;
+function loadLanguages(): Language[] {
+  if (!fs.existsSync(DATA_FILE)) return SEED_LANGUAGES;
+  // Re-seed if seed file is newer than data file (i.e. seed was updated)
+  const seedMtime = fs.statSync(SEED_FILE).mtimeMs;
+  const dataMtime = fs.statSync(DATA_FILE).mtimeMs;
+  if (seedMtime > dataMtime) {
+    saveLanguages(SEED_LANGUAGES);
+    console.log(`Seed file updated — re-seeded ${SEED_LANGUAGES.length} languages`);
+    return SEED_LANGUAGES;
+  }
   return JSON.parse(fs.readFileSync(DATA_FILE, "utf-8"));
 }
 
-function saveLanguages(data: typeof SEED_LANGUAGES) {
+function saveLanguages(data: Language[]) {
   fs.mkdirSync(path.dirname(DATA_FILE), { recursive: true });
   fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
 }
@@ -299,7 +314,7 @@ if (!fs.existsSync(DATA_FILE)) {
 }
 
 app.get("/api/languages", (_req, res) => {
-  res.json(loadLanguages() ?? SEED_LANGUAGES);
+  res.json(loadLanguages());
 });
 
 app.post("/api/languages", (req, res) => {
@@ -307,7 +322,7 @@ app.post("/api/languages", (req, res) => {
   if (!lang?.id || !lang?.name) {
     return res.status(400).json({ error: "id and name are required" });
   }
-  const current = loadLanguages() ?? [...SEED_LANGUAGES];
+  const current = loadLanguages();
   if (current.find((l: { id: string }) => l.id === lang.id)) {
     return res.status(409).json({ error: "language already exists" });
   }
@@ -339,7 +354,7 @@ async function startServer() {
   }
 
   app.listen(PORT, "0.0.0.0", () => {
-    console.log(`LingaTree server running on http://localhost:${PORT} (${SEED_LANGUAGES.length} languages seeded)`);
+    console.log(`LingaTree server running on http://localhost:${PORT} (${SEED_LANGUAGES.length} languages in seed)`);
   });
 }
 

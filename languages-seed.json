@@ -1,0 +1,4132 @@
+[
+  {
+    "id": "proto-human",
+    "name": "Proto-Human (hypothetical)",
+    "parentLanguageId": null,
+    "family": "Hypothetical",
+    "branch": "Proto",
+    "approxDate": "c. 100,000+ BCE",
+    "region": "Africa",
+    "description": "Hypothetical and highly speculative single ancestor of all human languages; not accepted by mainstream historical linguistics."
+  },
+
+  {
+    "id": "proto-indo-european",
+    "name": "Proto-Indo-European",
+    "parentLanguageId": null,
+    "family": "Indo-European",
+    "branch": "Proto",
+    "approxDate": "c. 4500–2500 BCE",
+    "region": "Pontic–Caspian steppe",
+    "description": "Reconstructed ancestor of the Indo-European family."
+  },
+  {
+    "id": "proto-anatolian",
+    "name": "Proto-Anatolian",
+    "parentLanguageId": "proto-indo-european",
+    "family": "Indo-European",
+    "branch": "Anatolian",
+    "approxDate": "c. 3000 BCE",
+    "region": "Anatolia",
+    "description": "Reconstructed ancestor of the Anatolian branch; earliest IE branch to split off."
+  },
+  {
+    "id": "hittite",
+    "name": "Hittite",
+    "parentLanguageId": "proto-anatolian",
+    "family": "Indo-European",
+    "branch": "Anatolian",
+    "approxDate": "c. 1650–1200 BCE",
+    "region": "Anatolia",
+    "description": "Oldest attested Indo-European language; written in cuneiform."
+  },
+  {
+    "id": "luwian",
+    "name": "Luwian",
+    "parentLanguageId": "proto-anatolian",
+    "family": "Indo-European",
+    "branch": "Anatolian",
+    "approxDate": "c. 1500–600 BCE",
+    "region": "Anatolia",
+    "description": "Sister language to Hittite; attested in cuneiform and hieroglyphic scripts."
+  },
+  {
+    "id": "lydian",
+    "name": "Lydian",
+    "parentLanguageId": "proto-anatolian",
+    "family": "Indo-European",
+    "branch": "Anatolian",
+    "approxDate": "c. 700–200 BCE",
+    "region": "Western Anatolia",
+    "description": "Iron-age Anatolian language of the Lydian kingdom."
+  },
+
+  {
+    "id": "proto-tocharian",
+    "name": "Proto-Tocharian",
+    "parentLanguageId": "proto-indo-european",
+    "family": "Indo-European",
+    "branch": "Tocharian",
+    "approxDate": "c. 2000 BCE",
+    "region": "Tarim Basin",
+    "description": "Reconstructed ancestor of Tocharian A and B."
+  },
+  {
+    "id": "tocharian-a",
+    "name": "Tocharian A",
+    "parentLanguageId": "proto-tocharian",
+    "family": "Indo-European",
+    "branch": "Tocharian",
+    "approxDate": "c. 500–1000 CE",
+    "region": "Tarim Basin",
+    "description": "Eastern Tocharian; liturgical language preserved in Buddhist texts."
+  },
+  {
+    "id": "tocharian-b",
+    "name": "Tocharian B",
+    "parentLanguageId": "proto-tocharian",
+    "family": "Indo-European",
+    "branch": "Tocharian",
+    "approxDate": "c. 500–1000 CE",
+    "region": "Tarim Basin",
+    "description": "Western Tocharian; more widely attested than Tocharian A."
+  },
+
+  {
+    "id": "proto-indo-iranian",
+    "name": "Proto-Indo-Iranian",
+    "parentLanguageId": "proto-indo-european",
+    "family": "Indo-European",
+    "branch": "Indo-Iranian",
+    "approxDate": "c. 2500–2000 BCE",
+    "region": "Central Asian steppe",
+    "description": "Reconstructed common ancestor of Indo-Aryan and Iranian languages."
+  },
+
+  {
+    "id": "proto-indo-aryan",
+    "name": "Proto-Indo-Aryan",
+    "parentLanguageId": "proto-indo-iranian",
+    "family": "Indo-European",
+    "branch": "Indo-Aryan",
+    "approxDate": "c. 2000 BCE",
+    "region": "Northwest Indian subcontinent",
+    "description": "Ancestor of the Indo-Aryan languages."
+  },
+  {
+    "id": "vedic-sanskrit",
+    "name": "Vedic Sanskrit",
+    "parentLanguageId": "proto-indo-aryan",
+    "family": "Indo-European",
+    "branch": "Indo-Aryan",
+    "approxDate": "c. 1500–500 BCE",
+    "region": "Northern Indian subcontinent",
+    "description": "Liturgical language of the Vedas."
+  },
+  {
+    "id": "classical-sanskrit",
+    "name": "Classical Sanskrit",
+    "parentLanguageId": "vedic-sanskrit",
+    "family": "Indo-European",
+    "branch": "Indo-Aryan",
+    "approxDate": "c. 500 BCE onward",
+    "region": "Indian subcontinent",
+    "description": "Standardized literary language codified by Pāṇini."
+  },
+  {
+    "id": "pali",
+    "name": "Pali",
+    "parentLanguageId": "proto-indo-aryan",
+    "family": "Indo-European",
+    "branch": "Indo-Aryan",
+    "approxDate": "c. 500 BCE – 100 CE",
+    "region": "Northern India",
+    "description": "Middle Indo-Aryan; liturgical language of Theravada Buddhism."
+  },
+  {
+    "id": "prakrit",
+    "name": "Prakrit (Middle Indo-Aryan)",
+    "parentLanguageId": "proto-indo-aryan",
+    "family": "Indo-European",
+    "branch": "Indo-Aryan",
+    "approxDate": "c. 500 BCE – 1000 CE",
+    "region": "Indian subcontinent",
+    "description": "Vernacular Middle Indo-Aryan languages; ancestor of modern Indo-Aryan tongues."
+  },
+  {
+    "id": "apabhramsa",
+    "name": "Apabhraṃśa",
+    "parentLanguageId": "prakrit",
+    "family": "Indo-European",
+    "branch": "Indo-Aryan",
+    "approxDate": "c. 500–1200 CE",
+    "region": "North India",
+    "description": "Late Middle Indo-Aryan stage transitional to modern languages."
+  },
+  {
+    "id": "hindi",
+    "name": "Hindi",
+    "parentLanguageId": "apabhramsa",
+    "family": "Indo-European",
+    "branch": "Indo-Aryan",
+    "approxDate": "c. 1500 CE – present",
+    "region": "North India",
+    "description": "Modern standard register of Khariboli; written in Devanagari."
+  },
+  {
+    "id": "urdu",
+    "name": "Urdu",
+    "parentLanguageId": "apabhramsa",
+    "family": "Indo-European",
+    "branch": "Indo-Aryan",
+    "approxDate": "c. 1200 CE – present",
+    "region": "Pakistan, North India",
+    "description": "Persianized register of Khariboli; written in Perso-Arabic script."
+  },
+  {
+    "id": "bengali",
+    "name": "Bengali",
+    "parentLanguageId": "apabhramsa",
+    "family": "Indo-European",
+    "branch": "Indo-Aryan",
+    "approxDate": "c. 1000 CE – present",
+    "region": "Bengal",
+    "description": "Eastern Indo-Aryan language of Bangladesh and West Bengal."
+  },
+  {
+    "id": "punjabi",
+    "name": "Punjabi",
+    "parentLanguageId": "apabhramsa",
+    "family": "Indo-European",
+    "branch": "Indo-Aryan",
+    "approxDate": "c. 1100 CE – present",
+    "region": "Punjab",
+    "description": "Indo-Aryan language of the Punjab region; tonal."
+  },
+  {
+    "id": "gujarati",
+    "name": "Gujarati",
+    "parentLanguageId": "apabhramsa",
+    "family": "Indo-European",
+    "branch": "Indo-Aryan",
+    "approxDate": "c. 1100 CE – present",
+    "region": "Gujarat",
+    "description": "Western Indo-Aryan language."
+  },
+  {
+    "id": "marathi",
+    "name": "Marathi",
+    "parentLanguageId": "apabhramsa",
+    "family": "Indo-European",
+    "branch": "Indo-Aryan",
+    "approxDate": "c. 900 CE – present",
+    "region": "Maharashtra",
+    "description": "Southern Indo-Aryan language."
+  },
+  {
+    "id": "nepali",
+    "name": "Nepali",
+    "parentLanguageId": "apabhramsa",
+    "family": "Indo-European",
+    "branch": "Indo-Aryan",
+    "approxDate": "c. 1200 CE – present",
+    "region": "Nepal",
+    "description": "Eastern Pahari language; official language of Nepal."
+  },
+  {
+    "id": "sinhala",
+    "name": "Sinhala",
+    "parentLanguageId": "proto-indo-aryan",
+    "family": "Indo-European",
+    "branch": "Indo-Aryan",
+    "approxDate": "c. 300 BCE – present",
+    "region": "Sri Lanka",
+    "description": "Insular Indo-Aryan language of Sri Lanka."
+  },
+  {
+    "id": "romani",
+    "name": "Romani",
+    "parentLanguageId": "apabhramsa",
+    "family": "Indo-European",
+    "branch": "Indo-Aryan",
+    "approxDate": "c. 1000 CE – present",
+    "region": "Europe (diasporic)",
+    "description": "Indo-Aryan language of the Roma people."
+  },
+  {
+    "id": "kashmiri",
+    "name": "Kashmiri",
+    "parentLanguageId": "proto-indo-aryan",
+    "family": "Indo-European",
+    "branch": "Dardic",
+    "approxDate": "c. 1200 CE – present",
+    "region": "Kashmir",
+    "description": "Dardic language; sometimes grouped within Indo-Aryan."
+  },
+
+  {
+    "id": "proto-iranian",
+    "name": "Proto-Iranian",
+    "parentLanguageId": "proto-indo-iranian",
+    "family": "Indo-European",
+    "branch": "Iranian",
+    "approxDate": "c. 1500 BCE",
+    "region": "Central Asia",
+    "description": "Reconstructed ancestor of Iranian languages."
+  },
+  {
+    "id": "avestan",
+    "name": "Avestan",
+    "parentLanguageId": "proto-iranian",
+    "family": "Indo-European",
+    "branch": "Iranian",
+    "approxDate": "c. 1000–400 BCE",
+    "region": "Eastern Iran",
+    "description": "Liturgical language of Zoroastrianism."
+  },
+  {
+    "id": "old-persian",
+    "name": "Old Persian",
+    "parentLanguageId": "proto-iranian",
+    "family": "Indo-European",
+    "branch": "Iranian",
+    "approxDate": "c. 600–300 BCE",
+    "region": "Iran",
+    "description": "Royal language of the Achaemenid Empire."
+  },
+  {
+    "id": "middle-persian",
+    "name": "Middle Persian (Pahlavi)",
+    "parentLanguageId": "old-persian",
+    "family": "Indo-European",
+    "branch": "Iranian",
+    "approxDate": "c. 300 BCE – 800 CE",
+    "region": "Iran",
+    "description": "Language of the Sasanian Empire."
+  },
+  {
+    "id": "persian",
+    "name": "Persian (Farsi)",
+    "parentLanguageId": "middle-persian",
+    "family": "Indo-European",
+    "branch": "Iranian",
+    "approxDate": "c. 800 CE – present",
+    "region": "Iran, Afghanistan, Tajikistan",
+    "description": "New Persian; written in Perso-Arabic script."
+  },
+  {
+    "id": "dari",
+    "name": "Dari",
+    "parentLanguageId": "persian",
+    "family": "Indo-European",
+    "branch": "Iranian",
+    "approxDate": "c. 1900 CE – present",
+    "region": "Afghanistan",
+    "description": "Afghan variety of Persian."
+  },
+  {
+    "id": "tajik",
+    "name": "Tajik",
+    "parentLanguageId": "persian",
+    "family": "Indo-European",
+    "branch": "Iranian",
+    "approxDate": "c. 1900 CE – present",
+    "region": "Tajikistan",
+    "description": "Tajik variety of Persian; written in Cyrillic."
+  },
+  {
+    "id": "kurdish",
+    "name": "Kurdish",
+    "parentLanguageId": "proto-iranian",
+    "family": "Indo-European",
+    "branch": "Iranian",
+    "approxDate": "c. 1000 CE – present",
+    "region": "Kurdistan",
+    "description": "Northwestern Iranian dialect continuum (Kurmanji, Sorani, etc.)."
+  },
+  {
+    "id": "pashto",
+    "name": "Pashto",
+    "parentLanguageId": "proto-iranian",
+    "family": "Indo-European",
+    "branch": "Iranian",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Afghanistan, Pakistan",
+    "description": "Eastern Iranian language."
+  },
+  {
+    "id": "ossetic",
+    "name": "Ossetic",
+    "parentLanguageId": "proto-iranian",
+    "family": "Indo-European",
+    "branch": "Iranian",
+    "approxDate": "c. 1700 CE – present",
+    "region": "North Caucasus",
+    "description": "Descendant of Scythian/Alanic; Eastern Iranian."
+  },
+  {
+    "id": "scythian",
+    "name": "Scythian",
+    "parentLanguageId": "proto-iranian",
+    "family": "Indo-European",
+    "branch": "Iranian",
+    "approxDate": "c. 900 BCE – 200 CE",
+    "region": "Pontic steppe",
+    "description": "Eastern Iranian language of the Scythian nomads."
+  },
+  {
+    "id": "sogdian",
+    "name": "Sogdian",
+    "parentLanguageId": "proto-iranian",
+    "family": "Indo-European",
+    "branch": "Iranian",
+    "approxDate": "c. 100–1000 CE",
+    "region": "Sogdiana (modern Uzbekistan/Tajikistan)",
+    "description": "Eastern Iranian Silk Road lingua franca."
+  },
+  {
+    "id": "balochi",
+    "name": "Balochi",
+    "parentLanguageId": "proto-iranian",
+    "family": "Indo-European",
+    "branch": "Iranian",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Balochistan",
+    "description": "Northwestern Iranian language."
+  },
+
+  {
+    "id": "proto-greek",
+    "name": "Proto-Greek",
+    "parentLanguageId": "proto-indo-european",
+    "family": "Indo-European",
+    "branch": "Hellenic",
+    "approxDate": "c. 2000 BCE",
+    "region": "Greece, Aegean",
+    "description": "Reconstructed ancestor of all Greek varieties."
+  },
+  {
+    "id": "mycenaean-greek",
+    "name": "Mycenaean Greek",
+    "parentLanguageId": "proto-greek",
+    "family": "Indo-European",
+    "branch": "Hellenic",
+    "approxDate": "c. 1450–1150 BCE",
+    "region": "Greece",
+    "description": "Earliest attested Greek; written in Linear B."
+  },
+  {
+    "id": "ancient-greek",
+    "name": "Ancient Greek",
+    "parentLanguageId": "proto-greek",
+    "family": "Indo-European",
+    "branch": "Hellenic",
+    "approxDate": "c. 800–300 BCE",
+    "region": "Greece, Mediterranean",
+    "description": "Classical Greek of Homer, Plato, and Aristotle."
+  },
+  {
+    "id": "koine-greek",
+    "name": "Koine Greek",
+    "parentLanguageId": "ancient-greek",
+    "family": "Indo-European",
+    "branch": "Hellenic",
+    "approxDate": "c. 300 BCE – 300 CE",
+    "region": "Eastern Mediterranean",
+    "description": "Lingua franca of the Hellenistic and early Roman world; language of the New Testament and Septuagint."
+  },
+  {
+    "id": "medieval-greek",
+    "name": "Medieval (Byzantine) Greek",
+    "parentLanguageId": "koine-greek",
+    "family": "Indo-European",
+    "branch": "Hellenic",
+    "approxDate": "c. 600–1500 CE",
+    "region": "Byzantine Empire",
+    "description": "Greek of the Byzantine Empire."
+  },
+  {
+    "id": "modern-greek",
+    "name": "Modern Greek",
+    "parentLanguageId": "medieval-greek",
+    "family": "Indo-European",
+    "branch": "Hellenic",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Greece, Cyprus",
+    "description": "Standard Modern Greek (Demotic)."
+  },
+
+  {
+    "id": "proto-italic",
+    "name": "Proto-Italic",
+    "parentLanguageId": "proto-indo-european",
+    "family": "Indo-European",
+    "branch": "Italic",
+    "approxDate": "c. 1500 BCE",
+    "region": "Italy",
+    "description": "Reconstructed ancestor of the Italic languages."
+  },
+  {
+    "id": "oscan",
+    "name": "Oscan",
+    "parentLanguageId": "proto-italic",
+    "family": "Indo-European",
+    "branch": "Italic",
+    "approxDate": "c. 500 BCE – 100 CE",
+    "region": "Southern Italy",
+    "description": "Sabellic Italic language."
+  },
+  {
+    "id": "umbrian",
+    "name": "Umbrian",
+    "parentLanguageId": "proto-italic",
+    "family": "Indo-European",
+    "branch": "Italic",
+    "approxDate": "c. 700–100 BCE",
+    "region": "Central Italy",
+    "description": "Sabellic Italic language; attested in the Iguvine Tablets."
+  },
+  {
+    "id": "latin",
+    "name": "Latin",
+    "parentLanguageId": "proto-italic",
+    "family": "Indo-European",
+    "branch": "Italic",
+    "approxDate": "c. 700 BCE",
+    "region": "Italy",
+    "description": "Classical language of Rome."
+  },
+  {
+    "id": "vulgar-latin",
+    "name": "Vulgar Latin",
+    "parentLanguageId": "latin",
+    "family": "Indo-European",
+    "branch": "Italic",
+    "approxDate": "c. 100 BCE – 700 CE",
+    "region": "Roman Empire",
+    "description": "Spoken Latin of the late empire; ancestor of the Romance languages."
+  },
+
+  {
+    "id": "old-french",
+    "name": "Old French",
+    "parentLanguageId": "vulgar-latin",
+    "family": "Indo-European",
+    "branch": "Romance",
+    "approxDate": "c. 800–1300 CE",
+    "region": "Northern France",
+    "description": "Langues d'oïl varieties of medieval France."
+  },
+  {
+    "id": "middle-french",
+    "name": "Middle French",
+    "parentLanguageId": "old-french",
+    "family": "Indo-European",
+    "branch": "Romance",
+    "approxDate": "c. 1300–1600 CE",
+    "region": "France",
+    "description": "Transitional stage between Old and Modern French."
+  },
+  {
+    "id": "french",
+    "name": "French",
+    "parentLanguageId": "middle-french",
+    "family": "Indo-European",
+    "branch": "Romance",
+    "approxDate": "c. 1600 CE – present",
+    "region": "France, francophone world",
+    "description": "Modern standard French."
+  },
+  {
+    "id": "occitan",
+    "name": "Occitan",
+    "parentLanguageId": "vulgar-latin",
+    "family": "Indo-European",
+    "branch": "Romance",
+    "approxDate": "c. 1000 CE – present",
+    "region": "Southern France",
+    "description": "Langue d'oc; medieval language of the troubadours."
+  },
+  {
+    "id": "catalan",
+    "name": "Catalan",
+    "parentLanguageId": "vulgar-latin",
+    "family": "Indo-European",
+    "branch": "Romance",
+    "approxDate": "c. 1000 CE – present",
+    "region": "Catalonia, Valencia, Balearic Islands, Andorra",
+    "description": "Western Romance language."
+  },
+  {
+    "id": "old-spanish",
+    "name": "Old Spanish",
+    "parentLanguageId": "vulgar-latin",
+    "family": "Indo-European",
+    "branch": "Romance",
+    "approxDate": "c. 1000–1500 CE",
+    "region": "Iberian Peninsula",
+    "description": "Medieval Castilian."
+  },
+  {
+    "id": "spanish",
+    "name": "Spanish",
+    "parentLanguageId": "old-spanish",
+    "family": "Indo-European",
+    "branch": "Romance",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Spain, Latin America",
+    "description": "Modern Castilian Spanish."
+  },
+  {
+    "id": "portuguese",
+    "name": "Portuguese",
+    "parentLanguageId": "vulgar-latin",
+    "family": "Indo-European",
+    "branch": "Romance",
+    "approxDate": "c. 1200 CE – present",
+    "region": "Portugal, Brazil, lusophone Africa",
+    "description": "Ibero-Romance language."
+  },
+  {
+    "id": "galician",
+    "name": "Galician",
+    "parentLanguageId": "vulgar-latin",
+    "family": "Indo-European",
+    "branch": "Romance",
+    "approxDate": "c. 1200 CE – present",
+    "region": "Galicia (Spain)",
+    "description": "Ibero-Romance language closely related to Portuguese."
+  },
+  {
+    "id": "italian",
+    "name": "Italian",
+    "parentLanguageId": "vulgar-latin",
+    "family": "Indo-European",
+    "branch": "Romance",
+    "approxDate": "c. 1200 CE – present",
+    "region": "Italy",
+    "description": "Standard Italian based on the Tuscan dialect."
+  },
+  {
+    "id": "sardinian",
+    "name": "Sardinian",
+    "parentLanguageId": "vulgar-latin",
+    "family": "Indo-European",
+    "branch": "Romance",
+    "approxDate": "c. 1000 CE – present",
+    "region": "Sardinia",
+    "description": "Conservative Romance language."
+  },
+  {
+    "id": "sicilian",
+    "name": "Sicilian",
+    "parentLanguageId": "vulgar-latin",
+    "family": "Indo-European",
+    "branch": "Romance",
+    "approxDate": "c. 1100 CE – present",
+    "region": "Sicily",
+    "description": "Italo-Dalmatian Romance language."
+  },
+  {
+    "id": "venetian",
+    "name": "Venetian",
+    "parentLanguageId": "vulgar-latin",
+    "family": "Indo-European",
+    "branch": "Romance",
+    "approxDate": "c. 1200 CE – present",
+    "region": "Veneto",
+    "description": "Italo-Romance language of the Venetian region."
+  },
+  {
+    "id": "neapolitan",
+    "name": "Neapolitan",
+    "parentLanguageId": "vulgar-latin",
+    "family": "Indo-European",
+    "branch": "Romance",
+    "approxDate": "c. 1000 CE – present",
+    "region": "Southern Italy",
+    "description": "Italo-Romance language of Naples and southern Italy."
+  },
+  {
+    "id": "romanian",
+    "name": "Romanian",
+    "parentLanguageId": "vulgar-latin",
+    "family": "Indo-European",
+    "branch": "Romance",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Romania, Moldova",
+    "description": "Eastern Romance language."
+  },
+  {
+    "id": "aromanian",
+    "name": "Aromanian",
+    "parentLanguageId": "vulgar-latin",
+    "family": "Indo-European",
+    "branch": "Romance",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Balkans",
+    "description": "Eastern Romance language."
+  },
+  {
+    "id": "romansh",
+    "name": "Romansh",
+    "parentLanguageId": "vulgar-latin",
+    "family": "Indo-European",
+    "branch": "Romance",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Switzerland (Graubünden)",
+    "description": "Rhaeto-Romance language."
+  },
+  {
+    "id": "ladin",
+    "name": "Ladin",
+    "parentLanguageId": "vulgar-latin",
+    "family": "Indo-European",
+    "branch": "Romance",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Dolomites",
+    "description": "Rhaeto-Romance language."
+  },
+  {
+    "id": "friulian",
+    "name": "Friulian",
+    "parentLanguageId": "vulgar-latin",
+    "family": "Indo-European",
+    "branch": "Romance",
+    "approxDate": "c. 1300 CE – present",
+    "region": "Friuli",
+    "description": "Rhaeto-Romance language."
+  },
+  {
+    "id": "dalmatian",
+    "name": "Dalmatian",
+    "parentLanguageId": "vulgar-latin",
+    "family": "Indo-European",
+    "branch": "Romance",
+    "approxDate": "c. 1000–1898 CE",
+    "region": "Dalmatian coast",
+    "description": "Extinct Romance language; last speaker died 1898."
+  },
+  {
+    "id": "haitian-creole",
+    "name": "Haitian Creole",
+    "parentLanguageId": "french",
+    "family": "Creole",
+    "branch": "French-based",
+    "approxDate": "c. 1700 CE – present",
+    "region": "Haiti",
+    "description": "French-based creole."
+  },
+
+  {
+    "id": "proto-celtic",
+    "name": "Proto-Celtic",
+    "parentLanguageId": "proto-indo-european",
+    "family": "Indo-European",
+    "branch": "Celtic",
+    "approxDate": "c. 1300 BCE",
+    "region": "Central Europe",
+    "description": "Reconstructed ancestor of the Celtic languages."
+  },
+  {
+    "id": "gaulish",
+    "name": "Gaulish",
+    "parentLanguageId": "proto-celtic",
+    "family": "Indo-European",
+    "branch": "Celtic",
+    "approxDate": "c. 500 BCE – 500 CE",
+    "region": "Gaul",
+    "description": "Continental Celtic language of ancient Gaul."
+  },
+  {
+    "id": "celtiberian",
+    "name": "Celtiberian",
+    "parentLanguageId": "proto-celtic",
+    "family": "Indo-European",
+    "branch": "Celtic",
+    "approxDate": "c. 300 BCE – 100 CE",
+    "region": "Iberia",
+    "description": "Continental Celtic language of pre-Roman Iberia."
+  },
+  {
+    "id": "proto-brittonic",
+    "name": "Proto-Brittonic",
+    "parentLanguageId": "proto-celtic",
+    "family": "Indo-European",
+    "branch": "Celtic",
+    "approxDate": "c. 500 BCE – 500 CE",
+    "region": "Britain",
+    "description": "Ancestor of the Brittonic Celtic languages."
+  },
+  {
+    "id": "welsh",
+    "name": "Welsh",
+    "parentLanguageId": "proto-brittonic",
+    "family": "Indo-European",
+    "branch": "Celtic",
+    "approxDate": "c. 550 CE – present",
+    "region": "Wales",
+    "description": "Brittonic Celtic language."
+  },
+  {
+    "id": "cornish",
+    "name": "Cornish",
+    "parentLanguageId": "proto-brittonic",
+    "family": "Indo-European",
+    "branch": "Celtic",
+    "approxDate": "c. 800 CE – present",
+    "region": "Cornwall",
+    "description": "Brittonic Celtic language; revived in the 20th century."
+  },
+  {
+    "id": "breton",
+    "name": "Breton",
+    "parentLanguageId": "proto-brittonic",
+    "family": "Indo-European",
+    "branch": "Celtic",
+    "approxDate": "c. 800 CE – present",
+    "region": "Brittany",
+    "description": "Brittonic Celtic language of Brittany."
+  },
+  {
+    "id": "primitive-irish",
+    "name": "Primitive Irish",
+    "parentLanguageId": "proto-celtic",
+    "family": "Indo-European",
+    "branch": "Celtic",
+    "approxDate": "c. 100–500 CE",
+    "region": "Ireland",
+    "description": "Earliest attested Goidelic Celtic; ogham inscriptions."
+  },
+  {
+    "id": "old-irish",
+    "name": "Old Irish",
+    "parentLanguageId": "primitive-irish",
+    "family": "Indo-European",
+    "branch": "Celtic",
+    "approxDate": "c. 600–900 CE",
+    "region": "Ireland",
+    "description": "Goidelic Celtic of early medieval Ireland."
+  },
+  {
+    "id": "middle-irish",
+    "name": "Middle Irish",
+    "parentLanguageId": "old-irish",
+    "family": "Indo-European",
+    "branch": "Celtic",
+    "approxDate": "c. 900–1200 CE",
+    "region": "Ireland, Scotland",
+    "description": "Transitional Goidelic Celtic; common ancestor of Irish, Scottish Gaelic, and Manx."
+  },
+  {
+    "id": "irish",
+    "name": "Irish (Gaelic)",
+    "parentLanguageId": "middle-irish",
+    "family": "Indo-European",
+    "branch": "Celtic",
+    "approxDate": "c. 1200 CE – present",
+    "region": "Ireland",
+    "description": "Modern Goidelic Celtic language."
+  },
+  {
+    "id": "scottish-gaelic",
+    "name": "Scottish Gaelic",
+    "parentLanguageId": "middle-irish",
+    "family": "Indo-European",
+    "branch": "Celtic",
+    "approxDate": "c. 1200 CE – present",
+    "region": "Scottish Highlands",
+    "description": "Goidelic Celtic language of Scotland."
+  },
+  {
+    "id": "manx",
+    "name": "Manx",
+    "parentLanguageId": "middle-irish",
+    "family": "Indo-European",
+    "branch": "Celtic",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Isle of Man",
+    "description": "Goidelic Celtic language; revived after 1974."
+  },
+
+  {
+    "id": "proto-germanic",
+    "name": "Proto-Germanic",
+    "parentLanguageId": "proto-indo-european",
+    "family": "Indo-European",
+    "branch": "Germanic",
+    "approxDate": "c. 500 BCE",
+    "region": "Northern Europe",
+    "description": "Reconstructed ancestor of the Germanic languages."
+  },
+  {
+    "id": "gothic",
+    "name": "Gothic",
+    "parentLanguageId": "proto-germanic",
+    "family": "Indo-European",
+    "branch": "Germanic",
+    "approxDate": "c. 300–700 CE",
+    "region": "Black Sea, Iberia",
+    "description": "East Germanic language; preserved in Wulfila's Bible translation."
+  },
+  {
+    "id": "proto-norse",
+    "name": "Proto-Norse",
+    "parentLanguageId": "proto-germanic",
+    "family": "Indo-European",
+    "branch": "Germanic",
+    "approxDate": "c. 200–700 CE",
+    "region": "Scandinavia",
+    "description": "Earliest North Germanic stage; runic inscriptions."
+  },
+  {
+    "id": "old-norse",
+    "name": "Old Norse",
+    "parentLanguageId": "proto-norse",
+    "family": "Indo-European",
+    "branch": "Germanic",
+    "approxDate": "c. 700–1300 CE",
+    "region": "Scandinavia",
+    "description": "Language of the Vikings; ancestor of modern North Germanic languages."
+  },
+  {
+    "id": "icelandic",
+    "name": "Icelandic",
+    "parentLanguageId": "old-norse",
+    "family": "Indo-European",
+    "branch": "Germanic",
+    "approxDate": "c. 1300 CE – present",
+    "region": "Iceland",
+    "description": "Conservative descendant of Old Norse."
+  },
+  {
+    "id": "faroese",
+    "name": "Faroese",
+    "parentLanguageId": "old-norse",
+    "family": "Indo-European",
+    "branch": "Germanic",
+    "approxDate": "c. 1400 CE – present",
+    "region": "Faroe Islands",
+    "description": "North Germanic language."
+  },
+  {
+    "id": "norwegian",
+    "name": "Norwegian",
+    "parentLanguageId": "old-norse",
+    "family": "Indo-European",
+    "branch": "Germanic",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Norway",
+    "description": "North Germanic language; Bokmål and Nynorsk standards."
+  },
+  {
+    "id": "swedish",
+    "name": "Swedish",
+    "parentLanguageId": "old-norse",
+    "family": "Indo-European",
+    "branch": "Germanic",
+    "approxDate": "c. 1300 CE – present",
+    "region": "Sweden, Finland",
+    "description": "East Scandinavian North Germanic language."
+  },
+  {
+    "id": "danish",
+    "name": "Danish",
+    "parentLanguageId": "old-norse",
+    "family": "Indo-European",
+    "branch": "Germanic",
+    "approxDate": "c. 1300 CE – present",
+    "region": "Denmark",
+    "description": "East Scandinavian North Germanic language."
+  },
+  {
+    "id": "norn",
+    "name": "Norn",
+    "parentLanguageId": "old-norse",
+    "family": "Indo-European",
+    "branch": "Germanic",
+    "approxDate": "c. 900–1850 CE",
+    "region": "Orkney, Shetland",
+    "description": "Extinct North Germanic language of the Northern Isles."
+  },
+  {
+    "id": "old-english",
+    "name": "Old English",
+    "parentLanguageId": "proto-germanic",
+    "family": "Indo-European",
+    "branch": "Germanic",
+    "approxDate": "c. 450–1100 CE",
+    "region": "England",
+    "description": "West Germanic language of Anglo-Saxon England."
+  },
+  {
+    "id": "middle-english",
+    "name": "Middle English",
+    "parentLanguageId": "old-english",
+    "family": "Indo-European",
+    "branch": "Germanic",
+    "approxDate": "c. 1100–1500 CE",
+    "region": "England",
+    "description": "English of Chaucer's era; heavy Norman French influence."
+  },
+  {
+    "id": "early-modern-english",
+    "name": "Early Modern English",
+    "parentLanguageId": "middle-english",
+    "family": "Indo-European",
+    "branch": "Germanic",
+    "approxDate": "c. 1500–1700 CE",
+    "region": "England",
+    "description": "English of Shakespeare and the King James Bible."
+  },
+  {
+    "id": "english",
+    "name": "English",
+    "parentLanguageId": "early-modern-english",
+    "family": "Indo-European",
+    "branch": "Germanic",
+    "approxDate": "c. 1700 CE – present",
+    "region": "Worldwide",
+    "description": "Modern English; global lingua franca."
+  },
+  {
+    "id": "scots",
+    "name": "Scots",
+    "parentLanguageId": "middle-english",
+    "family": "Indo-European",
+    "branch": "Germanic",
+    "approxDate": "c. 1400 CE – present",
+    "region": "Lowland Scotland",
+    "description": "West Germanic language closely related to English."
+  },
+  {
+    "id": "old-frisian",
+    "name": "Old Frisian",
+    "parentLanguageId": "proto-germanic",
+    "family": "Indo-European",
+    "branch": "Germanic",
+    "approxDate": "c. 1100–1500 CE",
+    "region": "North Sea coast",
+    "description": "West Germanic language closely related to Old English."
+  },
+  {
+    "id": "frisian",
+    "name": "Frisian",
+    "parentLanguageId": "old-frisian",
+    "family": "Indo-European",
+    "branch": "Germanic",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Netherlands, Germany",
+    "description": "West Germanic language; closest living relative of English."
+  },
+  {
+    "id": "old-saxon",
+    "name": "Old Saxon",
+    "parentLanguageId": "proto-germanic",
+    "family": "Indo-European",
+    "branch": "Germanic",
+    "approxDate": "c. 700–1150 CE",
+    "region": "Northern Germany",
+    "description": "West Germanic ancestor of Low German."
+  },
+  {
+    "id": "low-german",
+    "name": "Low German (Plattdeutsch)",
+    "parentLanguageId": "old-saxon",
+    "family": "Indo-European",
+    "branch": "Germanic",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Northern Germany, Netherlands",
+    "description": "West Germanic language."
+  },
+  {
+    "id": "old-dutch",
+    "name": "Old Dutch",
+    "parentLanguageId": "proto-germanic",
+    "family": "Indo-European",
+    "branch": "Germanic",
+    "approxDate": "c. 500–1150 CE",
+    "region": "Low Countries",
+    "description": "West Germanic ancestor of Dutch."
+  },
+  {
+    "id": "middle-dutch",
+    "name": "Middle Dutch",
+    "parentLanguageId": "old-dutch",
+    "family": "Indo-European",
+    "branch": "Germanic",
+    "approxDate": "c. 1150–1500 CE",
+    "region": "Low Countries",
+    "description": "Medieval stage of Dutch."
+  },
+  {
+    "id": "dutch",
+    "name": "Dutch",
+    "parentLanguageId": "middle-dutch",
+    "family": "Indo-European",
+    "branch": "Germanic",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Netherlands, Belgium",
+    "description": "West Germanic language."
+  },
+  {
+    "id": "afrikaans",
+    "name": "Afrikaans",
+    "parentLanguageId": "dutch",
+    "family": "Indo-European",
+    "branch": "Germanic",
+    "approxDate": "c. 1700 CE – present",
+    "region": "South Africa, Namibia",
+    "description": "West Germanic language descended from 17th-century Dutch."
+  },
+  {
+    "id": "old-high-german",
+    "name": "Old High German",
+    "parentLanguageId": "proto-germanic",
+    "family": "Indo-European",
+    "branch": "Germanic",
+    "approxDate": "c. 750–1050 CE",
+    "region": "Southern Germany",
+    "description": "Earliest stage of High German."
+  },
+  {
+    "id": "middle-high-german",
+    "name": "Middle High German",
+    "parentLanguageId": "old-high-german",
+    "family": "Indo-European",
+    "branch": "Germanic",
+    "approxDate": "c. 1050–1350 CE",
+    "region": "Germany",
+    "description": "Medieval stage of German."
+  },
+  {
+    "id": "german",
+    "name": "German",
+    "parentLanguageId": "middle-high-german",
+    "family": "Indo-European",
+    "branch": "Germanic",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Germany, Austria, Switzerland",
+    "description": "Standard High German."
+  },
+  {
+    "id": "yiddish",
+    "name": "Yiddish",
+    "parentLanguageId": "middle-high-german",
+    "family": "Indo-European",
+    "branch": "Germanic",
+    "approxDate": "c. 1000 CE – present",
+    "region": "Ashkenazi diaspora",
+    "description": "High German language with Hebrew, Aramaic, and Slavic elements."
+  },
+  {
+    "id": "pennsylvania-german",
+    "name": "Pennsylvania German",
+    "parentLanguageId": "german",
+    "family": "Indo-European",
+    "branch": "Germanic",
+    "approxDate": "c. 1750 CE – present",
+    "region": "Pennsylvania, Ohio, Ontario",
+    "description": "West Central German variety spoken by Amish and Mennonites."
+  },
+  {
+    "id": "luxembourgish",
+    "name": "Luxembourgish",
+    "parentLanguageId": "middle-high-german",
+    "family": "Indo-European",
+    "branch": "Germanic",
+    "approxDate": "c. 1800 CE – present",
+    "region": "Luxembourg",
+    "description": "Moselle Franconian variety; national language of Luxembourg."
+  },
+
+  {
+    "id": "proto-balto-slavic",
+    "name": "Proto-Balto-Slavic",
+    "parentLanguageId": "proto-indo-european",
+    "family": "Indo-European",
+    "branch": "Balto-Slavic",
+    "approxDate": "c. 2500 BCE",
+    "region": "Eastern Europe",
+    "description": "Reconstructed common ancestor of Baltic and Slavic languages."
+  },
+  {
+    "id": "proto-baltic",
+    "name": "Proto-Baltic",
+    "parentLanguageId": "proto-balto-slavic",
+    "family": "Indo-European",
+    "branch": "Baltic",
+    "approxDate": "c. 1500 BCE",
+    "region": "Eastern Baltic",
+    "description": "Reconstructed ancestor of Baltic languages."
+  },
+  {
+    "id": "old-prussian",
+    "name": "Old Prussian",
+    "parentLanguageId": "proto-baltic",
+    "family": "Indo-European",
+    "branch": "Baltic",
+    "approxDate": "c. 1300–1700 CE",
+    "region": "Prussia",
+    "description": "Extinct West Baltic language."
+  },
+  {
+    "id": "lithuanian",
+    "name": "Lithuanian",
+    "parentLanguageId": "proto-baltic",
+    "family": "Indo-European",
+    "branch": "Baltic",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Lithuania",
+    "description": "Conservative East Baltic language."
+  },
+  {
+    "id": "latvian",
+    "name": "Latvian",
+    "parentLanguageId": "proto-baltic",
+    "family": "Indo-European",
+    "branch": "Baltic",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Latvia",
+    "description": "East Baltic language."
+  },
+  {
+    "id": "proto-slavic",
+    "name": "Proto-Slavic",
+    "parentLanguageId": "proto-balto-slavic",
+    "family": "Indo-European",
+    "branch": "Slavic",
+    "approxDate": "c. 1500 BCE – 500 CE",
+    "region": "Eastern Europe",
+    "description": "Reconstructed ancestor of the Slavic languages."
+  },
+  {
+    "id": "old-church-slavonic",
+    "name": "Old Church Slavonic",
+    "parentLanguageId": "proto-slavic",
+    "family": "Indo-European",
+    "branch": "Slavic",
+    "approxDate": "c. 850–1100 CE",
+    "region": "Balkans, Moravia",
+    "description": "First literary Slavic language; liturgical language of the Slavic Orthodox churches."
+  },
+  {
+    "id": "old-east-slavic",
+    "name": "Old East Slavic",
+    "parentLanguageId": "proto-slavic",
+    "family": "Indo-European",
+    "branch": "Slavic",
+    "approxDate": "c. 800–1500 CE",
+    "region": "Kievan Rus'",
+    "description": "Ancestor of Russian, Ukrainian, and Belarusian."
+  },
+  {
+    "id": "russian",
+    "name": "Russian",
+    "parentLanguageId": "old-east-slavic",
+    "family": "Indo-European",
+    "branch": "Slavic",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Russia",
+    "description": "East Slavic language."
+  },
+  {
+    "id": "ukrainian",
+    "name": "Ukrainian",
+    "parentLanguageId": "old-east-slavic",
+    "family": "Indo-European",
+    "branch": "Slavic",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Ukraine",
+    "description": "East Slavic language."
+  },
+  {
+    "id": "belarusian",
+    "name": "Belarusian",
+    "parentLanguageId": "old-east-slavic",
+    "family": "Indo-European",
+    "branch": "Slavic",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Belarus",
+    "description": "East Slavic language."
+  },
+  {
+    "id": "rusyn",
+    "name": "Rusyn",
+    "parentLanguageId": "old-east-slavic",
+    "family": "Indo-European",
+    "branch": "Slavic",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Carpathian region",
+    "description": "East Slavic language."
+  },
+  {
+    "id": "polish",
+    "name": "Polish",
+    "parentLanguageId": "proto-slavic",
+    "family": "Indo-European",
+    "branch": "Slavic",
+    "approxDate": "c. 1200 CE – present",
+    "region": "Poland",
+    "description": "West Slavic language."
+  },
+  {
+    "id": "czech",
+    "name": "Czech",
+    "parentLanguageId": "proto-slavic",
+    "family": "Indo-European",
+    "branch": "Slavic",
+    "approxDate": "c. 1200 CE – present",
+    "region": "Czechia",
+    "description": "West Slavic language."
+  },
+  {
+    "id": "slovak",
+    "name": "Slovak",
+    "parentLanguageId": "proto-slavic",
+    "family": "Indo-European",
+    "branch": "Slavic",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Slovakia",
+    "description": "West Slavic language."
+  },
+  {
+    "id": "sorbian",
+    "name": "Sorbian (Upper and Lower)",
+    "parentLanguageId": "proto-slavic",
+    "family": "Indo-European",
+    "branch": "Slavic",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Lusatia (Germany)",
+    "description": "West Slavic languages."
+  },
+  {
+    "id": "kashubian",
+    "name": "Kashubian",
+    "parentLanguageId": "proto-slavic",
+    "family": "Indo-European",
+    "branch": "Slavic",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Pomerania",
+    "description": "West Slavic language."
+  },
+  {
+    "id": "slovene",
+    "name": "Slovene",
+    "parentLanguageId": "proto-slavic",
+    "family": "Indo-European",
+    "branch": "Slavic",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Slovenia",
+    "description": "South Slavic language."
+  },
+  {
+    "id": "serbo-croatian",
+    "name": "Serbo-Croatian",
+    "parentLanguageId": "proto-slavic",
+    "family": "Indo-European",
+    "branch": "Slavic",
+    "approxDate": "c. 1200 CE – present",
+    "region": "Western Balkans",
+    "description": "South Slavic dialect continuum (Serbian, Croatian, Bosnian, Montenegrin)."
+  },
+  {
+    "id": "bulgarian",
+    "name": "Bulgarian",
+    "parentLanguageId": "proto-slavic",
+    "family": "Indo-European",
+    "branch": "Slavic",
+    "approxDate": "c. 1400 CE – present",
+    "region": "Bulgaria",
+    "description": "South Slavic language; analytic morphology."
+  },
+  {
+    "id": "macedonian",
+    "name": "Macedonian",
+    "parentLanguageId": "proto-slavic",
+    "family": "Indo-European",
+    "branch": "Slavic",
+    "approxDate": "c. 1500 CE – present",
+    "region": "North Macedonia",
+    "description": "South Slavic language."
+  },
+
+  {
+    "id": "proto-armenian",
+    "name": "Proto-Armenian",
+    "parentLanguageId": "proto-indo-european",
+    "family": "Indo-European",
+    "branch": "Armenian",
+    "approxDate": "c. 2000 BCE",
+    "region": "Armenian highlands",
+    "description": "Reconstructed ancestor of Armenian."
+  },
+  {
+    "id": "classical-armenian",
+    "name": "Classical Armenian (Grabar)",
+    "parentLanguageId": "proto-armenian",
+    "family": "Indo-European",
+    "branch": "Armenian",
+    "approxDate": "c. 400–1100 CE",
+    "region": "Armenia",
+    "description": "Liturgical language of the Armenian Apostolic Church."
+  },
+  {
+    "id": "armenian",
+    "name": "Armenian",
+    "parentLanguageId": "classical-armenian",
+    "family": "Indo-European",
+    "branch": "Armenian",
+    "approxDate": "c. 1700 CE – present",
+    "region": "Armenia, diaspora",
+    "description": "Modern Armenian (Eastern and Western standards)."
+  },
+
+  {
+    "id": "proto-albanian",
+    "name": "Proto-Albanian",
+    "parentLanguageId": "proto-indo-european",
+    "family": "Indo-European",
+    "branch": "Albanian",
+    "approxDate": "c. 1000 BCE",
+    "region": "Western Balkans",
+    "description": "Reconstructed ancestor of Albanian."
+  },
+  {
+    "id": "albanian",
+    "name": "Albanian",
+    "parentLanguageId": "proto-albanian",
+    "family": "Indo-European",
+    "branch": "Albanian",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Albania, Kosovo",
+    "description": "Isolate branch of Indo-European; Gheg and Tosk dialect groups."
+  },
+
+  {
+    "id": "thracian",
+    "name": "Thracian",
+    "parentLanguageId": "proto-indo-european",
+    "family": "Indo-European",
+    "branch": "Thracian",
+    "approxDate": "c. 1500 BCE – 600 CE",
+    "region": "Thrace",
+    "description": "Poorly attested ancient Indo-European language."
+  },
+  {
+    "id": "phrygian",
+    "name": "Phrygian",
+    "parentLanguageId": "proto-indo-european",
+    "family": "Indo-European",
+    "branch": "Phrygian",
+    "approxDate": "c. 800 BCE – 600 CE",
+    "region": "Central Anatolia",
+    "description": "Indo-European language of the Phrygians."
+  },
+  {
+    "id": "illyrian",
+    "name": "Illyrian",
+    "parentLanguageId": "proto-indo-european",
+    "family": "Indo-European",
+    "branch": "Illyrian",
+    "approxDate": "c. 1000 BCE – 600 CE",
+    "region": "Western Balkans",
+    "description": "Poorly attested ancient Indo-European language."
+  },
+
+  {
+    "id": "proto-afroasiatic",
+    "name": "Proto-Afroasiatic",
+    "parentLanguageId": null,
+    "family": "Afroasiatic",
+    "branch": "Proto",
+    "approxDate": "c. 10,000–8,000 BCE",
+    "region": "Northeast Africa or Levant",
+    "description": "Reconstructed ancestor of the Afroasiatic phylum."
+  },
+  {
+    "id": "proto-semitic",
+    "name": "Proto-Semitic",
+    "parentLanguageId": "proto-afroasiatic",
+    "family": "Afroasiatic",
+    "branch": "Semitic",
+    "approxDate": "c. 4000 BCE",
+    "region": "Arabia or Levant",
+    "description": "Reconstructed ancestor of the Semitic languages."
+  },
+  {
+    "id": "akkadian",
+    "name": "Akkadian",
+    "parentLanguageId": "proto-semitic",
+    "family": "Afroasiatic",
+    "branch": "Semitic",
+    "approxDate": "c. 2500–100 BCE",
+    "region": "Mesopotamia",
+    "description": "East Semitic language; written in cuneiform; included Babylonian and Assyrian."
+  },
+  {
+    "id": "eblaite",
+    "name": "Eblaite",
+    "parentLanguageId": "proto-semitic",
+    "family": "Afroasiatic",
+    "branch": "Semitic",
+    "approxDate": "c. 2400–2200 BCE",
+    "region": "Ebla, Syria",
+    "description": "Early East Semitic language."
+  },
+  {
+    "id": "ugaritic",
+    "name": "Ugaritic",
+    "parentLanguageId": "proto-semitic",
+    "family": "Afroasiatic",
+    "branch": "Semitic",
+    "approxDate": "c. 1400–1200 BCE",
+    "region": "Ugarit (Syrian coast)",
+    "description": "Northwest Semitic language; cuneiform alphabet."
+  },
+  {
+    "id": "phoenician",
+    "name": "Phoenician",
+    "parentLanguageId": "proto-semitic",
+    "family": "Afroasiatic",
+    "branch": "Semitic",
+    "approxDate": "c. 1200–300 BCE",
+    "region": "Levantine coast",
+    "description": "Canaanite language; alphabet ancestral to most modern scripts."
+  },
+  {
+    "id": "punic",
+    "name": "Punic",
+    "parentLanguageId": "phoenician",
+    "family": "Afroasiatic",
+    "branch": "Semitic",
+    "approxDate": "c. 800 BCE – 700 CE",
+    "region": "Carthage, North Africa",
+    "description": "Western descendant of Phoenician."
+  },
+  {
+    "id": "biblical-hebrew",
+    "name": "Biblical Hebrew",
+    "parentLanguageId": "proto-semitic",
+    "family": "Afroasiatic",
+    "branch": "Semitic",
+    "approxDate": "c. 1200–200 BCE",
+    "region": "Canaan/Israel",
+    "description": "Canaanite Semitic language of the Hebrew Bible."
+  },
+  {
+    "id": "mishnaic-hebrew",
+    "name": "Mishnaic Hebrew",
+    "parentLanguageId": "biblical-hebrew",
+    "family": "Afroasiatic",
+    "branch": "Semitic",
+    "approxDate": "c. 100 BCE – 400 CE",
+    "region": "Roman Palestine",
+    "description": "Hebrew of the Mishnah."
+  },
+  {
+    "id": "hebrew",
+    "name": "Hebrew",
+    "parentLanguageId": "biblical-hebrew",
+    "family": "Afroasiatic",
+    "branch": "Semitic",
+    "approxDate": "c. 1880 CE – present",
+    "region": "Israel",
+    "description": "Modern Hebrew; revived as a spoken language in the late 19th/early 20th century."
+  },
+  {
+    "id": "moabite",
+    "name": "Moabite",
+    "parentLanguageId": "proto-semitic",
+    "family": "Afroasiatic",
+    "branch": "Semitic",
+    "approxDate": "c. 900–500 BCE",
+    "region": "Moab (Jordan)",
+    "description": "Canaanite Semitic language."
+  },
+  {
+    "id": "aramaic",
+    "name": "Aramaic",
+    "parentLanguageId": "proto-semitic",
+    "family": "Afroasiatic",
+    "branch": "Semitic",
+    "approxDate": "c. 1100 BCE – present",
+    "region": "Near East",
+    "description": "Northwest Semitic language; lingua franca of much of the ancient Near East."
+  },
+  {
+    "id": "syriac",
+    "name": "Syriac",
+    "parentLanguageId": "aramaic",
+    "family": "Afroasiatic",
+    "branch": "Semitic",
+    "approxDate": "c. 100 CE – present",
+    "region": "Edessa, Mesopotamia",
+    "description": "Christian literary form of Eastern Aramaic."
+  },
+  {
+    "id": "neo-aramaic",
+    "name": "Neo-Aramaic",
+    "parentLanguageId": "aramaic",
+    "family": "Afroasiatic",
+    "branch": "Semitic",
+    "approxDate": "c. 1200 CE – present",
+    "region": "Middle East",
+    "description": "Modern Aramaic dialect cluster (Assyrian, Chaldean, Turoyo, etc.)."
+  },
+  {
+    "id": "classical-arabic",
+    "name": "Classical Arabic",
+    "parentLanguageId": "proto-semitic",
+    "family": "Afroasiatic",
+    "branch": "Semitic",
+    "approxDate": "c. 600–800 CE",
+    "region": "Arabian Peninsula",
+    "description": "Language of the Qur'an and classical Arabic literature."
+  },
+  {
+    "id": "modern-standard-arabic",
+    "name": "Modern Standard Arabic",
+    "parentLanguageId": "classical-arabic",
+    "family": "Afroasiatic",
+    "branch": "Semitic",
+    "approxDate": "c. 1900 CE – present",
+    "region": "Arab world",
+    "description": "Modern formal register of Arabic."
+  },
+  {
+    "id": "egyptian-arabic",
+    "name": "Egyptian Arabic",
+    "parentLanguageId": "classical-arabic",
+    "family": "Afroasiatic",
+    "branch": "Semitic",
+    "approxDate": "c. 800 CE – present",
+    "region": "Egypt",
+    "description": "Most widely understood Arabic variety."
+  },
+  {
+    "id": "levantine-arabic",
+    "name": "Levantine Arabic",
+    "parentLanguageId": "classical-arabic",
+    "family": "Afroasiatic",
+    "branch": "Semitic",
+    "approxDate": "c. 800 CE – present",
+    "region": "Levant",
+    "description": "Arabic dialect group of Syria, Lebanon, Palestine, Jordan."
+  },
+  {
+    "id": "maghrebi-arabic",
+    "name": "Maghrebi Arabic",
+    "parentLanguageId": "classical-arabic",
+    "family": "Afroasiatic",
+    "branch": "Semitic",
+    "approxDate": "c. 800 CE – present",
+    "region": "North Africa",
+    "description": "Arabic dialect group of the Maghreb."
+  },
+  {
+    "id": "gulf-arabic",
+    "name": "Gulf Arabic",
+    "parentLanguageId": "classical-arabic",
+    "family": "Afroasiatic",
+    "branch": "Semitic",
+    "approxDate": "c. 800 CE – present",
+    "region": "Persian Gulf",
+    "description": "Arabic dialect group of the Gulf states."
+  },
+  {
+    "id": "maltese",
+    "name": "Maltese",
+    "parentLanguageId": "classical-arabic",
+    "family": "Afroasiatic",
+    "branch": "Semitic",
+    "approxDate": "c. 1200 CE – present",
+    "region": "Malta",
+    "description": "Semitic language descended from Maghrebi Arabic; written in Latin script."
+  },
+  {
+    "id": "geez",
+    "name": "Ge'ez",
+    "parentLanguageId": "proto-semitic",
+    "family": "Afroasiatic",
+    "branch": "Semitic",
+    "approxDate": "c. 100 BCE – 1000 CE",
+    "region": "Ethiopia, Eritrea",
+    "description": "South Semitic liturgical language."
+  },
+  {
+    "id": "amharic",
+    "name": "Amharic",
+    "parentLanguageId": "geez",
+    "family": "Afroasiatic",
+    "branch": "Semitic",
+    "approxDate": "c. 1200 CE – present",
+    "region": "Ethiopia",
+    "description": "South Semitic language; official language of Ethiopia."
+  },
+  {
+    "id": "tigrinya",
+    "name": "Tigrinya",
+    "parentLanguageId": "geez",
+    "family": "Afroasiatic",
+    "branch": "Semitic",
+    "approxDate": "c. 1200 CE – present",
+    "region": "Eritrea, Tigray",
+    "description": "South Semitic language."
+  },
+
+  {
+    "id": "ancient-egyptian",
+    "name": "Ancient Egyptian",
+    "parentLanguageId": "proto-afroasiatic",
+    "family": "Afroasiatic",
+    "branch": "Egyptian",
+    "approxDate": "c. 3200–700 BCE",
+    "region": "Egypt",
+    "description": "Earliest stages of Egyptian; hieroglyphic, hieratic, and demotic scripts."
+  },
+  {
+    "id": "coptic",
+    "name": "Coptic",
+    "parentLanguageId": "ancient-egyptian",
+    "family": "Afroasiatic",
+    "branch": "Egyptian",
+    "approxDate": "c. 200 CE – 1700 CE",
+    "region": "Egypt",
+    "description": "Final stage of Egyptian; liturgical language of the Coptic Church."
+  },
+
+  {
+    "id": "proto-berber",
+    "name": "Proto-Berber",
+    "parentLanguageId": "proto-afroasiatic",
+    "family": "Afroasiatic",
+    "branch": "Berber",
+    "approxDate": "c. 3000 BCE",
+    "region": "North Africa",
+    "description": "Reconstructed ancestor of Berber languages."
+  },
+  {
+    "id": "tamazight",
+    "name": "Tamazight (Central Atlas)",
+    "parentLanguageId": "proto-berber",
+    "family": "Afroasiatic",
+    "branch": "Berber",
+    "approxDate": "c. 1000 CE – present",
+    "region": "Morocco",
+    "description": "Berber language."
+  },
+  {
+    "id": "kabyle",
+    "name": "Kabyle",
+    "parentLanguageId": "proto-berber",
+    "family": "Afroasiatic",
+    "branch": "Berber",
+    "approxDate": "c. 1000 CE – present",
+    "region": "Algeria",
+    "description": "Berber language of Kabylia."
+  },
+  {
+    "id": "tuareg",
+    "name": "Tuareg (Tamasheq)",
+    "parentLanguageId": "proto-berber",
+    "family": "Afroasiatic",
+    "branch": "Berber",
+    "approxDate": "c. 1000 CE – present",
+    "region": "Sahara",
+    "description": "Berber language of the Tuareg."
+  },
+
+  {
+    "id": "hausa",
+    "name": "Hausa",
+    "parentLanguageId": "proto-afroasiatic",
+    "family": "Afroasiatic",
+    "branch": "Chadic",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Nigeria, Niger",
+    "description": "Chadic language; major West African lingua franca."
+  },
+  {
+    "id": "somali",
+    "name": "Somali",
+    "parentLanguageId": "proto-afroasiatic",
+    "family": "Afroasiatic",
+    "branch": "Cushitic",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Horn of Africa",
+    "description": "East Cushitic language."
+  },
+  {
+    "id": "oromo",
+    "name": "Oromo",
+    "parentLanguageId": "proto-afroasiatic",
+    "family": "Afroasiatic",
+    "branch": "Cushitic",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Ethiopia, Kenya",
+    "description": "East Cushitic language."
+  },
+
+  {
+    "id": "proto-sino-tibetan",
+    "name": "Proto-Sino-Tibetan",
+    "parentLanguageId": null,
+    "family": "Sino-Tibetan",
+    "branch": "Proto",
+    "approxDate": "c. 4000 BCE",
+    "region": "East Asia",
+    "description": "Reconstructed ancestor of the Sino-Tibetan family."
+  },
+  {
+    "id": "old-chinese",
+    "name": "Old Chinese",
+    "parentLanguageId": "proto-sino-tibetan",
+    "family": "Sino-Tibetan",
+    "branch": "Sinitic",
+    "approxDate": "c. 1250–200 BCE",
+    "region": "China",
+    "description": "Language of oracle bone inscriptions and early classical texts."
+  },
+  {
+    "id": "middle-chinese",
+    "name": "Middle Chinese",
+    "parentLanguageId": "old-chinese",
+    "family": "Sino-Tibetan",
+    "branch": "Sinitic",
+    "approxDate": "c. 600–1000 CE",
+    "region": "China",
+    "description": "Chinese of the Sui-Tang period; basis of Sinoxenic vocabulary."
+  },
+  {
+    "id": "mandarin",
+    "name": "Mandarin Chinese",
+    "parentLanguageId": "middle-chinese",
+    "family": "Sino-Tibetan",
+    "branch": "Sinitic",
+    "approxDate": "c. 1300 CE – present",
+    "region": "Northern China",
+    "description": "Largest Sinitic variety; basis of Standard Chinese."
+  },
+  {
+    "id": "cantonese",
+    "name": "Cantonese (Yue)",
+    "parentLanguageId": "middle-chinese",
+    "family": "Sino-Tibetan",
+    "branch": "Sinitic",
+    "approxDate": "c. 1000 CE – present",
+    "region": "Guangdong, Hong Kong",
+    "description": "Yue Chinese variety."
+  },
+  {
+    "id": "hokkien",
+    "name": "Hokkien (Min Nan)",
+    "parentLanguageId": "middle-chinese",
+    "family": "Sino-Tibetan",
+    "branch": "Sinitic",
+    "approxDate": "c. 1000 CE – present",
+    "region": "Fujian, Taiwan, SE Asia",
+    "description": "Southern Min Chinese variety."
+  },
+  {
+    "id": "hakka",
+    "name": "Hakka",
+    "parentLanguageId": "middle-chinese",
+    "family": "Sino-Tibetan",
+    "branch": "Sinitic",
+    "approxDate": "c. 1000 CE – present",
+    "region": "Southern China, Taiwan",
+    "description": "Sinitic variety."
+  },
+  {
+    "id": "wu",
+    "name": "Wu Chinese (Shanghainese)",
+    "parentLanguageId": "middle-chinese",
+    "family": "Sino-Tibetan",
+    "branch": "Sinitic",
+    "approxDate": "c. 1000 CE – present",
+    "region": "Shanghai, Zhejiang",
+    "description": "Wu Sinitic variety."
+  },
+  {
+    "id": "xiang",
+    "name": "Xiang Chinese",
+    "parentLanguageId": "middle-chinese",
+    "family": "Sino-Tibetan",
+    "branch": "Sinitic",
+    "approxDate": "c. 1000 CE – present",
+    "region": "Hunan",
+    "description": "Sinitic variety."
+  },
+  {
+    "id": "gan",
+    "name": "Gan Chinese",
+    "parentLanguageId": "middle-chinese",
+    "family": "Sino-Tibetan",
+    "branch": "Sinitic",
+    "approxDate": "c. 1000 CE – present",
+    "region": "Jiangxi",
+    "description": "Sinitic variety."
+  },
+  {
+    "id": "min-dong",
+    "name": "Eastern Min (Fuzhounese)",
+    "parentLanguageId": "middle-chinese",
+    "family": "Sino-Tibetan",
+    "branch": "Sinitic",
+    "approxDate": "c. 1000 CE – present",
+    "region": "Fujian",
+    "description": "Eastern Min Sinitic variety."
+  },
+  {
+    "id": "classical-tibetan",
+    "name": "Classical Tibetan",
+    "parentLanguageId": "proto-sino-tibetan",
+    "family": "Sino-Tibetan",
+    "branch": "Tibeto-Burman",
+    "approxDate": "c. 700–1200 CE",
+    "region": "Tibet",
+    "description": "Literary and liturgical Tibetan."
+  },
+  {
+    "id": "tibetan",
+    "name": "Tibetan",
+    "parentLanguageId": "classical-tibetan",
+    "family": "Sino-Tibetan",
+    "branch": "Tibeto-Burman",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Tibetan plateau",
+    "description": "Modern Tibetan dialect group."
+  },
+  {
+    "id": "burmese",
+    "name": "Burmese",
+    "parentLanguageId": "proto-sino-tibetan",
+    "family": "Sino-Tibetan",
+    "branch": "Tibeto-Burman",
+    "approxDate": "c. 1100 CE – present",
+    "region": "Myanmar",
+    "description": "Lolo-Burmese language."
+  },
+  {
+    "id": "dzongkha",
+    "name": "Dzongkha",
+    "parentLanguageId": "classical-tibetan",
+    "family": "Sino-Tibetan",
+    "branch": "Tibeto-Burman",
+    "approxDate": "c. 1600 CE – present",
+    "region": "Bhutan",
+    "description": "South Tibetic language; official language of Bhutan."
+  },
+  {
+    "id": "newar",
+    "name": "Newar",
+    "parentLanguageId": "proto-sino-tibetan",
+    "family": "Sino-Tibetan",
+    "branch": "Tibeto-Burman",
+    "approxDate": "c. 1100 CE – present",
+    "region": "Kathmandu Valley",
+    "description": "Tibeto-Burman language with long literary tradition."
+  },
+  {
+    "id": "meitei",
+    "name": "Meitei (Manipuri)",
+    "parentLanguageId": "proto-sino-tibetan",
+    "family": "Sino-Tibetan",
+    "branch": "Tibeto-Burman",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Manipur",
+    "description": "Tibeto-Burman language."
+  },
+  {
+    "id": "karen",
+    "name": "Karen languages",
+    "parentLanguageId": "proto-sino-tibetan",
+    "family": "Sino-Tibetan",
+    "branch": "Tibeto-Burman",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Myanmar, Thailand",
+    "description": "Karenic Tibeto-Burman languages."
+  },
+
+  {
+    "id": "proto-dravidian",
+    "name": "Proto-Dravidian",
+    "parentLanguageId": null,
+    "family": "Dravidian",
+    "branch": "Proto",
+    "approxDate": "c. 4000 BCE",
+    "region": "South Asia",
+    "description": "Reconstructed ancestor of the Dravidian family."
+  },
+  {
+    "id": "old-tamil",
+    "name": "Old Tamil",
+    "parentLanguageId": "proto-dravidian",
+    "family": "Dravidian",
+    "branch": "South Dravidian",
+    "approxDate": "c. 300 BCE – 700 CE",
+    "region": "Tamil Nadu",
+    "description": "Earliest attested Dravidian; Sangam literature."
+  },
+  {
+    "id": "tamil",
+    "name": "Tamil",
+    "parentLanguageId": "old-tamil",
+    "family": "Dravidian",
+    "branch": "South Dravidian",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Tamil Nadu, Sri Lanka, Singapore",
+    "description": "Modern Tamil."
+  },
+  {
+    "id": "malayalam",
+    "name": "Malayalam",
+    "parentLanguageId": "old-tamil",
+    "family": "Dravidian",
+    "branch": "South Dravidian",
+    "approxDate": "c. 1000 CE – present",
+    "region": "Kerala",
+    "description": "South Dravidian language."
+  },
+  {
+    "id": "kannada",
+    "name": "Kannada",
+    "parentLanguageId": "proto-dravidian",
+    "family": "Dravidian",
+    "branch": "South Dravidian",
+    "approxDate": "c. 800 CE – present",
+    "region": "Karnataka",
+    "description": "South Dravidian language."
+  },
+  {
+    "id": "telugu",
+    "name": "Telugu",
+    "parentLanguageId": "proto-dravidian",
+    "family": "Dravidian",
+    "branch": "South-Central Dravidian",
+    "approxDate": "c. 1000 CE – present",
+    "region": "Andhra Pradesh, Telangana",
+    "description": "South-Central Dravidian language."
+  },
+  {
+    "id": "tulu",
+    "name": "Tulu",
+    "parentLanguageId": "proto-dravidian",
+    "family": "Dravidian",
+    "branch": "South Dravidian",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Karnataka, Kerala coast",
+    "description": "South Dravidian language."
+  },
+  {
+    "id": "brahui",
+    "name": "Brahui",
+    "parentLanguageId": "proto-dravidian",
+    "family": "Dravidian",
+    "branch": "North Dravidian",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Balochistan",
+    "description": "North Dravidian outlier in Pakistan."
+  },
+  {
+    "id": "gondi",
+    "name": "Gondi",
+    "parentLanguageId": "proto-dravidian",
+    "family": "Dravidian",
+    "branch": "South-Central Dravidian",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Central India",
+    "description": "South-Central Dravidian language."
+  },
+
+  {
+    "id": "proto-uralic",
+    "name": "Proto-Uralic",
+    "parentLanguageId": null,
+    "family": "Uralic",
+    "branch": "Proto",
+    "approxDate": "c. 5000 BCE",
+    "region": "Western Siberia / Ural Mountains",
+    "description": "Reconstructed ancestor of the Uralic family."
+  },
+  {
+    "id": "finnish",
+    "name": "Finnish",
+    "parentLanguageId": "proto-uralic",
+    "family": "Uralic",
+    "branch": "Finnic",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Finland",
+    "description": "Finnic Uralic language."
+  },
+  {
+    "id": "estonian",
+    "name": "Estonian",
+    "parentLanguageId": "proto-uralic",
+    "family": "Uralic",
+    "branch": "Finnic",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Estonia",
+    "description": "Finnic Uralic language."
+  },
+  {
+    "id": "karelian",
+    "name": "Karelian",
+    "parentLanguageId": "proto-uralic",
+    "family": "Uralic",
+    "branch": "Finnic",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Karelia",
+    "description": "Finnic Uralic language."
+  },
+  {
+    "id": "veps",
+    "name": "Veps",
+    "parentLanguageId": "proto-uralic",
+    "family": "Uralic",
+    "branch": "Finnic",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Northwest Russia",
+    "description": "Finnic Uralic language."
+  },
+  {
+    "id": "sami",
+    "name": "Sámi languages",
+    "parentLanguageId": "proto-uralic",
+    "family": "Uralic",
+    "branch": "Sámi",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Sápmi (northern Fennoscandia)",
+    "description": "Sámi branch of Uralic."
+  },
+  {
+    "id": "hungarian",
+    "name": "Hungarian",
+    "parentLanguageId": "proto-uralic",
+    "family": "Uralic",
+    "branch": "Ugric",
+    "approxDate": "c. 1000 CE – present",
+    "region": "Hungary",
+    "description": "Ugric Uralic language."
+  },
+  {
+    "id": "khanty",
+    "name": "Khanty",
+    "parentLanguageId": "proto-uralic",
+    "family": "Uralic",
+    "branch": "Ugric",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Western Siberia",
+    "description": "Ugric Uralic language."
+  },
+  {
+    "id": "mansi",
+    "name": "Mansi",
+    "parentLanguageId": "proto-uralic",
+    "family": "Uralic",
+    "branch": "Ugric",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Western Siberia",
+    "description": "Ugric Uralic language; closest relative of Hungarian."
+  },
+  {
+    "id": "komi",
+    "name": "Komi",
+    "parentLanguageId": "proto-uralic",
+    "family": "Uralic",
+    "branch": "Permic",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Northwestern Russia",
+    "description": "Permic Uralic language."
+  },
+  {
+    "id": "udmurt",
+    "name": "Udmurt",
+    "parentLanguageId": "proto-uralic",
+    "family": "Uralic",
+    "branch": "Permic",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Udmurtia, Russia",
+    "description": "Permic Uralic language."
+  },
+  {
+    "id": "mari",
+    "name": "Mari",
+    "parentLanguageId": "proto-uralic",
+    "family": "Uralic",
+    "branch": "Mari",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Volga region",
+    "description": "Volga Uralic language."
+  },
+  {
+    "id": "erzya",
+    "name": "Erzya / Moksha (Mordvinic)",
+    "parentLanguageId": "proto-uralic",
+    "family": "Uralic",
+    "branch": "Mordvinic",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Volga region",
+    "description": "Mordvinic Uralic languages."
+  },
+  {
+    "id": "nenets",
+    "name": "Nenets",
+    "parentLanguageId": "proto-uralic",
+    "family": "Uralic",
+    "branch": "Samoyedic",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Arctic Russia",
+    "description": "Samoyedic Uralic language."
+  },
+
+  {
+    "id": "proto-turkic",
+    "name": "Proto-Turkic",
+    "parentLanguageId": null,
+    "family": "Turkic",
+    "branch": "Proto",
+    "approxDate": "c. 500 BCE",
+    "region": "Inner Asia",
+    "description": "Reconstructed ancestor of the Turkic family."
+  },
+  {
+    "id": "old-turkic",
+    "name": "Old Turkic",
+    "parentLanguageId": "proto-turkic",
+    "family": "Turkic",
+    "branch": "Common Turkic",
+    "approxDate": "c. 700–1300 CE",
+    "region": "Central Asia, Mongolia",
+    "description": "Earliest attested Turkic; Orkhon inscriptions."
+  },
+  {
+    "id": "ottoman-turkish",
+    "name": "Ottoman Turkish",
+    "parentLanguageId": "old-turkic",
+    "family": "Turkic",
+    "branch": "Oghuz",
+    "approxDate": "c. 1300–1928 CE",
+    "region": "Ottoman Empire",
+    "description": "Persianized literary Turkic; written in Arabic script."
+  },
+  {
+    "id": "turkish",
+    "name": "Turkish",
+    "parentLanguageId": "ottoman-turkish",
+    "family": "Turkic",
+    "branch": "Oghuz",
+    "approxDate": "c. 1928 CE – present",
+    "region": "Turkey",
+    "description": "Modern Turkish; reformed and written in Latin script."
+  },
+  {
+    "id": "azerbaijani",
+    "name": "Azerbaijani",
+    "parentLanguageId": "old-turkic",
+    "family": "Turkic",
+    "branch": "Oghuz",
+    "approxDate": "c. 1300 CE – present",
+    "region": "Azerbaijan, Iran",
+    "description": "Oghuz Turkic language."
+  },
+  {
+    "id": "turkmen",
+    "name": "Turkmen",
+    "parentLanguageId": "old-turkic",
+    "family": "Turkic",
+    "branch": "Oghuz",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Turkmenistan",
+    "description": "Oghuz Turkic language."
+  },
+  {
+    "id": "uzbek",
+    "name": "Uzbek",
+    "parentLanguageId": "old-turkic",
+    "family": "Turkic",
+    "branch": "Karluk",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Uzbekistan",
+    "description": "Karluk Turkic language."
+  },
+  {
+    "id": "uyghur",
+    "name": "Uyghur",
+    "parentLanguageId": "old-turkic",
+    "family": "Turkic",
+    "branch": "Karluk",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Xinjiang",
+    "description": "Karluk Turkic language."
+  },
+  {
+    "id": "kazakh",
+    "name": "Kazakh",
+    "parentLanguageId": "old-turkic",
+    "family": "Turkic",
+    "branch": "Kipchak",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Kazakhstan",
+    "description": "Kipchak Turkic language."
+  },
+  {
+    "id": "kyrgyz",
+    "name": "Kyrgyz",
+    "parentLanguageId": "old-turkic",
+    "family": "Turkic",
+    "branch": "Kipchak",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Kyrgyzstan",
+    "description": "Kipchak Turkic language."
+  },
+  {
+    "id": "tatar",
+    "name": "Tatar",
+    "parentLanguageId": "old-turkic",
+    "family": "Turkic",
+    "branch": "Kipchak",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Tatarstan",
+    "description": "Kipchak Turkic language."
+  },
+  {
+    "id": "bashkir",
+    "name": "Bashkir",
+    "parentLanguageId": "old-turkic",
+    "family": "Turkic",
+    "branch": "Kipchak",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Bashkortostan",
+    "description": "Kipchak Turkic language."
+  },
+  {
+    "id": "chuvash",
+    "name": "Chuvash",
+    "parentLanguageId": "proto-turkic",
+    "family": "Turkic",
+    "branch": "Oghur",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Chuvashia",
+    "description": "Only surviving Oghur (Bulgar) Turkic language."
+  },
+  {
+    "id": "yakut",
+    "name": "Yakut (Sakha)",
+    "parentLanguageId": "old-turkic",
+    "family": "Turkic",
+    "branch": "Siberian Turkic",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Yakutia",
+    "description": "Siberian Turkic language."
+  },
+  {
+    "id": "tuvan",
+    "name": "Tuvan",
+    "parentLanguageId": "old-turkic",
+    "family": "Turkic",
+    "branch": "Siberian Turkic",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Tuva",
+    "description": "Siberian Turkic language; known for throat singing."
+  },
+
+  {
+    "id": "proto-mongolic",
+    "name": "Proto-Mongolic",
+    "parentLanguageId": null,
+    "family": "Mongolic",
+    "branch": "Proto",
+    "approxDate": "c. 1000 CE",
+    "region": "Mongolia",
+    "description": "Reconstructed ancestor of the Mongolic family."
+  },
+  {
+    "id": "middle-mongol",
+    "name": "Middle Mongol",
+    "parentLanguageId": "proto-mongolic",
+    "family": "Mongolic",
+    "branch": "Mongolic",
+    "approxDate": "c. 1200–1600 CE",
+    "region": "Mongol Empire",
+    "description": "Language of the Mongol Empire; Secret History of the Mongols."
+  },
+  {
+    "id": "mongolian",
+    "name": "Mongolian",
+    "parentLanguageId": "middle-mongol",
+    "family": "Mongolic",
+    "branch": "Mongolic",
+    "approxDate": "c. 1600 CE – present",
+    "region": "Mongolia, Inner Mongolia",
+    "description": "Khalkha Mongolian; written in Cyrillic and traditional Mongolian scripts."
+  },
+  {
+    "id": "buryat",
+    "name": "Buryat",
+    "parentLanguageId": "middle-mongol",
+    "family": "Mongolic",
+    "branch": "Mongolic",
+    "approxDate": "c. 1600 CE – present",
+    "region": "Buryatia",
+    "description": "Mongolic language."
+  },
+  {
+    "id": "kalmyk",
+    "name": "Kalmyk-Oirat",
+    "parentLanguageId": "middle-mongol",
+    "family": "Mongolic",
+    "branch": "Mongolic",
+    "approxDate": "c. 1600 CE – present",
+    "region": "Kalmykia, Xinjiang",
+    "description": "Western Mongolic language."
+  },
+
+  {
+    "id": "proto-tungusic",
+    "name": "Proto-Tungusic",
+    "parentLanguageId": null,
+    "family": "Tungusic",
+    "branch": "Proto",
+    "approxDate": "c. 500 BCE",
+    "region": "Manchuria, Siberia",
+    "description": "Reconstructed ancestor of the Tungusic family."
+  },
+  {
+    "id": "manchu",
+    "name": "Manchu",
+    "parentLanguageId": "proto-tungusic",
+    "family": "Tungusic",
+    "branch": "Tungusic",
+    "approxDate": "c. 1600 CE – present",
+    "region": "Manchuria",
+    "description": "Tungusic language of the Qing dynasty; now critically endangered."
+  },
+  {
+    "id": "evenki",
+    "name": "Evenki",
+    "parentLanguageId": "proto-tungusic",
+    "family": "Tungusic",
+    "branch": "Tungusic",
+    "approxDate": "c. 1600 CE – present",
+    "region": "Eastern Siberia",
+    "description": "Northern Tungusic language."
+  },
+
+  {
+    "id": "proto-koreanic",
+    "name": "Proto-Koreanic",
+    "parentLanguageId": null,
+    "family": "Koreanic",
+    "branch": "Proto",
+    "approxDate": "c. 1000 BCE",
+    "region": "Korean Peninsula",
+    "description": "Reconstructed ancestor of Korean; relationship to other families disputed."
+  },
+  {
+    "id": "old-korean",
+    "name": "Old Korean",
+    "parentLanguageId": "proto-koreanic",
+    "family": "Koreanic",
+    "branch": "Korean",
+    "approxDate": "c. 600–1000 CE",
+    "region": "Korea",
+    "description": "Korean of the Three Kingdoms and Unified Silla periods."
+  },
+  {
+    "id": "middle-korean",
+    "name": "Middle Korean",
+    "parentLanguageId": "old-korean",
+    "family": "Koreanic",
+    "branch": "Korean",
+    "approxDate": "c. 1000–1600 CE",
+    "region": "Korea",
+    "description": "Korean of the Goryeo and early Joseon; first written in Hangul (1443)."
+  },
+  {
+    "id": "korean",
+    "name": "Korean",
+    "parentLanguageId": "middle-korean",
+    "family": "Koreanic",
+    "branch": "Korean",
+    "approxDate": "c. 1600 CE – present",
+    "region": "Korean Peninsula",
+    "description": "Modern Korean; isolate or small family depending on classification."
+  },
+  {
+    "id": "jeju",
+    "name": "Jeju",
+    "parentLanguageId": "middle-korean",
+    "family": "Koreanic",
+    "branch": "Korean",
+    "approxDate": "c. 1600 CE – present",
+    "region": "Jeju Island",
+    "description": "Koreanic language; not mutually intelligible with mainland Korean."
+  },
+
+  {
+    "id": "proto-japonic",
+    "name": "Proto-Japonic",
+    "parentLanguageId": null,
+    "family": "Japonic",
+    "branch": "Proto",
+    "approxDate": "c. 1000 BCE",
+    "region": "Korean Peninsula / Japanese archipelago",
+    "description": "Reconstructed ancestor of the Japonic family."
+  },
+  {
+    "id": "old-japanese",
+    "name": "Old Japanese",
+    "parentLanguageId": "proto-japonic",
+    "family": "Japonic",
+    "branch": "Japanese",
+    "approxDate": "c. 700–800 CE",
+    "region": "Japan",
+    "description": "Earliest attested stage of Japanese; Man'yōshū."
+  },
+  {
+    "id": "middle-japanese",
+    "name": "Middle Japanese",
+    "parentLanguageId": "old-japanese",
+    "family": "Japonic",
+    "branch": "Japanese",
+    "approxDate": "c. 800–1600 CE",
+    "region": "Japan",
+    "description": "Early and Late Middle Japanese; classical literary language."
+  },
+  {
+    "id": "japanese",
+    "name": "Japanese",
+    "parentLanguageId": "middle-japanese",
+    "family": "Japonic",
+    "branch": "Japanese",
+    "approxDate": "c. 1600 CE – present",
+    "region": "Japan",
+    "description": "Modern Japanese."
+  },
+  {
+    "id": "okinawan",
+    "name": "Okinawan",
+    "parentLanguageId": "proto-japonic",
+    "family": "Japonic",
+    "branch": "Ryukyuan",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Okinawa",
+    "description": "Northern Ryukyuan language."
+  },
+  {
+    "id": "miyako",
+    "name": "Miyako",
+    "parentLanguageId": "proto-japonic",
+    "family": "Japonic",
+    "branch": "Ryukyuan",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Miyako Islands",
+    "description": "Southern Ryukyuan language."
+  },
+  {
+    "id": "yaeyama",
+    "name": "Yaeyama",
+    "parentLanguageId": "proto-japonic",
+    "family": "Japonic",
+    "branch": "Ryukyuan",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Yaeyama Islands",
+    "description": "Southern Ryukyuan language."
+  },
+
+  {
+    "id": "proto-austronesian",
+    "name": "Proto-Austronesian",
+    "parentLanguageId": null,
+    "family": "Austronesian",
+    "branch": "Proto",
+    "approxDate": "c. 3500 BCE",
+    "region": "Taiwan",
+    "description": "Reconstructed ancestor of the Austronesian family."
+  },
+  {
+    "id": "proto-malayo-polynesian",
+    "name": "Proto-Malayo-Polynesian",
+    "parentLanguageId": "proto-austronesian",
+    "family": "Austronesian",
+    "branch": "Malayo-Polynesian",
+    "approxDate": "c. 2500 BCE",
+    "region": "Philippines",
+    "description": "Ancestor of all Austronesian languages outside Taiwan."
+  },
+  {
+    "id": "tagalog",
+    "name": "Tagalog (Filipino)",
+    "parentLanguageId": "proto-malayo-polynesian",
+    "family": "Austronesian",
+    "branch": "Philippine",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Philippines",
+    "description": "Philippine Austronesian language; basis of Filipino."
+  },
+  {
+    "id": "cebuano",
+    "name": "Cebuano",
+    "parentLanguageId": "proto-malayo-polynesian",
+    "family": "Austronesian",
+    "branch": "Philippine",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Philippines",
+    "description": "Philippine Austronesian language."
+  },
+  {
+    "id": "ilocano",
+    "name": "Ilocano",
+    "parentLanguageId": "proto-malayo-polynesian",
+    "family": "Austronesian",
+    "branch": "Philippine",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Northern Luzon",
+    "description": "Philippine Austronesian language."
+  },
+  {
+    "id": "malay",
+    "name": "Malay",
+    "parentLanguageId": "proto-malayo-polynesian",
+    "family": "Austronesian",
+    "branch": "Malayo-Sumbawan",
+    "approxDate": "c. 600 CE – present",
+    "region": "Malay Archipelago",
+    "description": "Western Malayo-Polynesian language; basis of Bahasa Malaysia and Bahasa Indonesia."
+  },
+  {
+    "id": "indonesian",
+    "name": "Indonesian",
+    "parentLanguageId": "malay",
+    "family": "Austronesian",
+    "branch": "Malayo-Sumbawan",
+    "approxDate": "c. 1928 CE – present",
+    "region": "Indonesia",
+    "description": "Standardized register of Malay; national language of Indonesia."
+  },
+  {
+    "id": "javanese",
+    "name": "Javanese",
+    "parentLanguageId": "proto-malayo-polynesian",
+    "family": "Austronesian",
+    "branch": "Malayo-Sumbawan",
+    "approxDate": "c. 700 CE – present",
+    "region": "Java",
+    "description": "Austronesian language with long literary tradition."
+  },
+  {
+    "id": "sundanese",
+    "name": "Sundanese",
+    "parentLanguageId": "proto-malayo-polynesian",
+    "family": "Austronesian",
+    "branch": "Malayo-Sumbawan",
+    "approxDate": "c. 1000 CE – present",
+    "region": "West Java",
+    "description": "Austronesian language."
+  },
+  {
+    "id": "balinese",
+    "name": "Balinese",
+    "parentLanguageId": "proto-malayo-polynesian",
+    "family": "Austronesian",
+    "branch": "Malayo-Sumbawan",
+    "approxDate": "c. 1000 CE – present",
+    "region": "Bali",
+    "description": "Austronesian language."
+  },
+  {
+    "id": "malagasy",
+    "name": "Malagasy",
+    "parentLanguageId": "proto-malayo-polynesian",
+    "family": "Austronesian",
+    "branch": "Barito",
+    "approxDate": "c. 500 CE – present",
+    "region": "Madagascar",
+    "description": "Austronesian language; closest relatives are Barito languages of Borneo."
+  },
+  {
+    "id": "proto-oceanic",
+    "name": "Proto-Oceanic",
+    "parentLanguageId": "proto-malayo-polynesian",
+    "family": "Austronesian",
+    "branch": "Oceanic",
+    "approxDate": "c. 1500 BCE",
+    "region": "Bismarck Archipelago",
+    "description": "Ancestor of Oceanic Austronesian languages."
+  },
+  {
+    "id": "fijian",
+    "name": "Fijian",
+    "parentLanguageId": "proto-oceanic",
+    "family": "Austronesian",
+    "branch": "Oceanic",
+    "approxDate": "c. 1000 CE – present",
+    "region": "Fiji",
+    "description": "Central Pacific Oceanic language."
+  },
+  {
+    "id": "tongan",
+    "name": "Tongan",
+    "parentLanguageId": "proto-oceanic",
+    "family": "Austronesian",
+    "branch": "Polynesian",
+    "approxDate": "c. 1000 CE – present",
+    "region": "Tonga",
+    "description": "Polynesian Oceanic language."
+  },
+  {
+    "id": "samoan",
+    "name": "Samoan",
+    "parentLanguageId": "proto-oceanic",
+    "family": "Austronesian",
+    "branch": "Polynesian",
+    "approxDate": "c. 1000 CE – present",
+    "region": "Samoa",
+    "description": "Polynesian Oceanic language."
+  },
+  {
+    "id": "maori",
+    "name": "Māori",
+    "parentLanguageId": "proto-oceanic",
+    "family": "Austronesian",
+    "branch": "Polynesian",
+    "approxDate": "c. 1300 CE – present",
+    "region": "New Zealand",
+    "description": "Eastern Polynesian language."
+  },
+  {
+    "id": "hawaiian",
+    "name": "Hawaiian",
+    "parentLanguageId": "proto-oceanic",
+    "family": "Austronesian",
+    "branch": "Polynesian",
+    "approxDate": "c. 1000 CE – present",
+    "region": "Hawai'i",
+    "description": "Eastern Polynesian language."
+  },
+  {
+    "id": "tahitian",
+    "name": "Tahitian",
+    "parentLanguageId": "proto-oceanic",
+    "family": "Austronesian",
+    "branch": "Polynesian",
+    "approxDate": "c. 1000 CE – present",
+    "region": "Tahiti",
+    "description": "Eastern Polynesian language."
+  },
+  {
+    "id": "rapanui",
+    "name": "Rapa Nui",
+    "parentLanguageId": "proto-oceanic",
+    "family": "Austronesian",
+    "branch": "Polynesian",
+    "approxDate": "c. 1200 CE – present",
+    "region": "Easter Island",
+    "description": "Eastern Polynesian language."
+  },
+  {
+    "id": "chamorro",
+    "name": "Chamorro",
+    "parentLanguageId": "proto-malayo-polynesian",
+    "family": "Austronesian",
+    "branch": "Malayo-Polynesian",
+    "approxDate": "c. 1000 CE – present",
+    "region": "Mariana Islands",
+    "description": "Austronesian language of the Marianas."
+  },
+
+  {
+    "id": "proto-tai-kadai",
+    "name": "Proto-Tai-Kadai",
+    "parentLanguageId": null,
+    "family": "Kra-Dai",
+    "branch": "Proto",
+    "approxDate": "c. 2500 BCE",
+    "region": "Southern China",
+    "description": "Reconstructed ancestor of the Kra-Dai (Tai-Kadai) family."
+  },
+  {
+    "id": "thai",
+    "name": "Thai",
+    "parentLanguageId": "proto-tai-kadai",
+    "family": "Kra-Dai",
+    "branch": "Tai",
+    "approxDate": "c. 1300 CE – present",
+    "region": "Thailand",
+    "description": "Southwestern Tai language."
+  },
+  {
+    "id": "lao",
+    "name": "Lao",
+    "parentLanguageId": "proto-tai-kadai",
+    "family": "Kra-Dai",
+    "branch": "Tai",
+    "approxDate": "c. 1300 CE – present",
+    "region": "Laos, NE Thailand",
+    "description": "Southwestern Tai language."
+  },
+  {
+    "id": "shan",
+    "name": "Shan",
+    "parentLanguageId": "proto-tai-kadai",
+    "family": "Kra-Dai",
+    "branch": "Tai",
+    "approxDate": "c. 1300 CE – present",
+    "region": "Myanmar (Shan State)",
+    "description": "Southwestern Tai language."
+  },
+  {
+    "id": "zhuang",
+    "name": "Zhuang",
+    "parentLanguageId": "proto-tai-kadai",
+    "family": "Kra-Dai",
+    "branch": "Tai",
+    "approxDate": "c. 1000 CE – present",
+    "region": "Guangxi (China)",
+    "description": "Northern Tai language."
+  },
+
+  {
+    "id": "proto-austroasiatic",
+    "name": "Proto-Austroasiatic",
+    "parentLanguageId": null,
+    "family": "Austroasiatic",
+    "branch": "Proto",
+    "approxDate": "c. 4000 BCE",
+    "region": "Southeast Asia",
+    "description": "Reconstructed ancestor of the Austroasiatic family."
+  },
+  {
+    "id": "vietnamese",
+    "name": "Vietnamese",
+    "parentLanguageId": "proto-austroasiatic",
+    "family": "Austroasiatic",
+    "branch": "Vietic",
+    "approxDate": "c. 1000 CE – present",
+    "region": "Vietnam",
+    "description": "Vietic Austroasiatic language; tonal."
+  },
+  {
+    "id": "khmer",
+    "name": "Khmer",
+    "parentLanguageId": "proto-austroasiatic",
+    "family": "Austroasiatic",
+    "branch": "Khmeric",
+    "approxDate": "c. 600 CE – present",
+    "region": "Cambodia",
+    "description": "Austroasiatic language of Cambodia."
+  },
+  {
+    "id": "mon",
+    "name": "Mon",
+    "parentLanguageId": "proto-austroasiatic",
+    "family": "Austroasiatic",
+    "branch": "Monic",
+    "approxDate": "c. 600 CE – present",
+    "region": "Myanmar, Thailand",
+    "description": "Austroasiatic language."
+  },
+  {
+    "id": "santali",
+    "name": "Santali",
+    "parentLanguageId": "proto-austroasiatic",
+    "family": "Austroasiatic",
+    "branch": "Munda",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Eastern India",
+    "description": "Munda Austroasiatic language."
+  },
+  {
+    "id": "khasi",
+    "name": "Khasi",
+    "parentLanguageId": "proto-austroasiatic",
+    "family": "Austroasiatic",
+    "branch": "Khasic",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Meghalaya (India)",
+    "description": "Austroasiatic language."
+  },
+
+  {
+    "id": "hmong",
+    "name": "Hmong",
+    "parentLanguageId": null,
+    "family": "Hmong-Mien",
+    "branch": "Hmongic",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Southern China, SE Asia",
+    "description": "Hmongic Hmong-Mien language."
+  },
+  {
+    "id": "mien",
+    "name": "Iu Mien",
+    "parentLanguageId": null,
+    "family": "Hmong-Mien",
+    "branch": "Mienic",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Southern China, SE Asia",
+    "description": "Mienic Hmong-Mien language."
+  },
+
+  {
+    "id": "proto-niger-congo",
+    "name": "Proto-Niger-Congo",
+    "parentLanguageId": null,
+    "family": "Niger-Congo",
+    "branch": "Proto",
+    "approxDate": "c. 8000 BCE (estimated)",
+    "region": "West Africa",
+    "description": "Hypothesized ancestor of the Niger-Congo macrofamily; internal coherence debated."
+  },
+  {
+    "id": "proto-bantu",
+    "name": "Proto-Bantu",
+    "parentLanguageId": "proto-niger-congo",
+    "family": "Niger-Congo",
+    "branch": "Bantu",
+    "approxDate": "c. 3000 BCE",
+    "region": "Cameroon/Nigeria border",
+    "description": "Reconstructed ancestor of the Bantu languages."
+  },
+  {
+    "id": "swahili",
+    "name": "Swahili",
+    "parentLanguageId": "proto-bantu",
+    "family": "Niger-Congo",
+    "branch": "Bantu",
+    "approxDate": "c. 1000 CE – present",
+    "region": "East Africa",
+    "description": "Sabaki Bantu language; major lingua franca of East Africa."
+  },
+  {
+    "id": "zulu",
+    "name": "Zulu",
+    "parentLanguageId": "proto-bantu",
+    "family": "Niger-Congo",
+    "branch": "Bantu",
+    "approxDate": "c. 1500 CE – present",
+    "region": "South Africa",
+    "description": "Nguni Bantu language."
+  },
+  {
+    "id": "xhosa",
+    "name": "Xhosa",
+    "parentLanguageId": "proto-bantu",
+    "family": "Niger-Congo",
+    "branch": "Bantu",
+    "approxDate": "c. 1500 CE – present",
+    "region": "South Africa",
+    "description": "Nguni Bantu language; click consonants from Khoisan contact."
+  },
+  {
+    "id": "shona",
+    "name": "Shona",
+    "parentLanguageId": "proto-bantu",
+    "family": "Niger-Congo",
+    "branch": "Bantu",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Zimbabwe",
+    "description": "Bantu language."
+  },
+  {
+    "id": "kinyarwanda",
+    "name": "Kinyarwanda",
+    "parentLanguageId": "proto-bantu",
+    "family": "Niger-Congo",
+    "branch": "Bantu",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Rwanda",
+    "description": "Bantu language."
+  },
+  {
+    "id": "kikuyu",
+    "name": "Kikuyu",
+    "parentLanguageId": "proto-bantu",
+    "family": "Niger-Congo",
+    "branch": "Bantu",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Kenya",
+    "description": "Bantu language."
+  },
+  {
+    "id": "luganda",
+    "name": "Luganda",
+    "parentLanguageId": "proto-bantu",
+    "family": "Niger-Congo",
+    "branch": "Bantu",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Uganda",
+    "description": "Bantu language."
+  },
+  {
+    "id": "lingala",
+    "name": "Lingala",
+    "parentLanguageId": "proto-bantu",
+    "family": "Niger-Congo",
+    "branch": "Bantu",
+    "approxDate": "c. 1800 CE – present",
+    "region": "DRC, Congo",
+    "description": "Bantu lingua franca of the Congo River basin."
+  },
+  {
+    "id": "kongo",
+    "name": "Kongo",
+    "parentLanguageId": "proto-bantu",
+    "family": "Niger-Congo",
+    "branch": "Bantu",
+    "approxDate": "c. 1300 CE – present",
+    "region": "DRC, Angola, Congo",
+    "description": "Bantu language of the Kongo people."
+  },
+  {
+    "id": "yoruba",
+    "name": "Yoruba",
+    "parentLanguageId": "proto-niger-congo",
+    "family": "Niger-Congo",
+    "branch": "Volta-Niger",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Nigeria, Benin",
+    "description": "Yoruboid Niger-Congo language."
+  },
+  {
+    "id": "igbo",
+    "name": "Igbo",
+    "parentLanguageId": "proto-niger-congo",
+    "family": "Niger-Congo",
+    "branch": "Volta-Niger",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Nigeria",
+    "description": "Igboid Niger-Congo language."
+  },
+  {
+    "id": "fula",
+    "name": "Fula (Fulfulde/Pulaar)",
+    "parentLanguageId": "proto-niger-congo",
+    "family": "Niger-Congo",
+    "branch": "Atlantic",
+    "approxDate": "c. 1500 CE – present",
+    "region": "West and Central Africa",
+    "description": "Atlantic Niger-Congo language."
+  },
+  {
+    "id": "wolof",
+    "name": "Wolof",
+    "parentLanguageId": "proto-niger-congo",
+    "family": "Niger-Congo",
+    "branch": "Atlantic",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Senegal, Gambia",
+    "description": "Atlantic Niger-Congo language."
+  },
+  {
+    "id": "akan",
+    "name": "Akan (Twi/Fante)",
+    "parentLanguageId": "proto-niger-congo",
+    "family": "Niger-Congo",
+    "branch": "Kwa",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Ghana",
+    "description": "Kwa Niger-Congo language."
+  },
+  {
+    "id": "ewe",
+    "name": "Ewe",
+    "parentLanguageId": "proto-niger-congo",
+    "family": "Niger-Congo",
+    "branch": "Kwa",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Ghana, Togo",
+    "description": "Kwa Niger-Congo language."
+  },
+  {
+    "id": "bambara",
+    "name": "Bambara",
+    "parentLanguageId": "proto-niger-congo",
+    "family": "Niger-Congo",
+    "branch": "Mande",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Mali",
+    "description": "Mande Niger-Congo language."
+  },
+  {
+    "id": "mandinka",
+    "name": "Mandinka",
+    "parentLanguageId": "proto-niger-congo",
+    "family": "Niger-Congo",
+    "branch": "Mande",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Senegambia",
+    "description": "Mande Niger-Congo language."
+  },
+
+  {
+    "id": "proto-nilo-saharan",
+    "name": "Proto-Nilo-Saharan",
+    "parentLanguageId": null,
+    "family": "Nilo-Saharan",
+    "branch": "Proto",
+    "approxDate": "Disputed",
+    "region": "North-Central Africa",
+    "description": "Proposed but disputed macrofamily ancestor."
+  },
+  {
+    "id": "dinka",
+    "name": "Dinka",
+    "parentLanguageId": "proto-nilo-saharan",
+    "family": "Nilo-Saharan",
+    "branch": "Nilotic",
+    "approxDate": "c. 1500 CE – present",
+    "region": "South Sudan",
+    "description": "Western Nilotic language."
+  },
+  {
+    "id": "luo",
+    "name": "Luo",
+    "parentLanguageId": "proto-nilo-saharan",
+    "family": "Nilo-Saharan",
+    "branch": "Nilotic",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Kenya, Tanzania, Uganda",
+    "description": "Western Nilotic language."
+  },
+  {
+    "id": "maasai",
+    "name": "Maasai",
+    "parentLanguageId": "proto-nilo-saharan",
+    "family": "Nilo-Saharan",
+    "branch": "Nilotic",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Kenya, Tanzania",
+    "description": "Eastern Nilotic language."
+  },
+  {
+    "id": "kanuri",
+    "name": "Kanuri",
+    "parentLanguageId": "proto-nilo-saharan",
+    "family": "Nilo-Saharan",
+    "branch": "Saharan",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Lake Chad basin",
+    "description": "Saharan Nilo-Saharan language."
+  },
+  {
+    "id": "songhai",
+    "name": "Songhai",
+    "parentLanguageId": "proto-nilo-saharan",
+    "family": "Nilo-Saharan",
+    "branch": "Songhay",
+    "approxDate": "c. 1300 CE – present",
+    "region": "Mali, Niger",
+    "description": "Songhay Nilo-Saharan language; classification disputed."
+  },
+
+  {
+    "id": "khoekhoe",
+    "name": "Khoekhoe (Nama)",
+    "parentLanguageId": null,
+    "family": "Khoe-Kwadi",
+    "branch": "Khoekhoe",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Namibia, Botswana",
+    "description": "Khoe language with click consonants."
+  },
+  {
+    "id": "san-languages",
+    "name": "San (Tuu and Kx'a languages)",
+    "parentLanguageId": null,
+    "family": "Tuu / Kx'a",
+    "branch": "Khoisan (areal)",
+    "approxDate": "Ancient",
+    "region": "Southern Africa",
+    "description": "Click-language families of the San peoples."
+  },
+  {
+    "id": "hadza",
+    "name": "Hadza",
+    "parentLanguageId": null,
+    "family": "Isolate",
+    "branch": "Isolate",
+    "approxDate": "Ancient",
+    "region": "Tanzania",
+    "description": "Click-language isolate."
+  },
+  {
+    "id": "sandawe",
+    "name": "Sandawe",
+    "parentLanguageId": null,
+    "family": "Khoe-Kwadi (proposed)",
+    "branch": "Khoe-Kwadi",
+    "approxDate": "Ancient",
+    "region": "Tanzania",
+    "description": "Click language; sometimes grouped with Khoe."
+  },
+
+  {
+    "id": "proto-northeast-caucasian",
+    "name": "Proto-Northeast Caucasian",
+    "parentLanguageId": null,
+    "family": "Northeast Caucasian",
+    "branch": "Proto",
+    "approxDate": "c. 4000 BCE",
+    "region": "Caucasus",
+    "description": "Reconstructed ancestor of the Northeast Caucasian (Nakh-Daghestanian) family."
+  },
+  {
+    "id": "chechen",
+    "name": "Chechen",
+    "parentLanguageId": "proto-northeast-caucasian",
+    "family": "Northeast Caucasian",
+    "branch": "Nakh",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Chechnya",
+    "description": "Nakh language."
+  },
+  {
+    "id": "ingush",
+    "name": "Ingush",
+    "parentLanguageId": "proto-northeast-caucasian",
+    "family": "Northeast Caucasian",
+    "branch": "Nakh",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Ingushetia",
+    "description": "Nakh language."
+  },
+  {
+    "id": "avar",
+    "name": "Avar",
+    "parentLanguageId": "proto-northeast-caucasian",
+    "family": "Northeast Caucasian",
+    "branch": "Daghestanian",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Daghestan",
+    "description": "Avar-Andic Daghestanian language."
+  },
+  {
+    "id": "lezgian",
+    "name": "Lezgian",
+    "parentLanguageId": "proto-northeast-caucasian",
+    "family": "Northeast Caucasian",
+    "branch": "Daghestanian",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Daghestan, Azerbaijan",
+    "description": "Lezgic Daghestanian language."
+  },
+  {
+    "id": "proto-northwest-caucasian",
+    "name": "Proto-Northwest Caucasian",
+    "parentLanguageId": null,
+    "family": "Northwest Caucasian",
+    "branch": "Proto",
+    "approxDate": "c. 4000 BCE",
+    "region": "Western Caucasus",
+    "description": "Reconstructed ancestor of the Northwest Caucasian family."
+  },
+  {
+    "id": "abkhaz",
+    "name": "Abkhaz",
+    "parentLanguageId": "proto-northwest-caucasian",
+    "family": "Northwest Caucasian",
+    "branch": "Abkhaz-Abaza",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Abkhazia",
+    "description": "Northwest Caucasian language with extreme consonant inventory."
+  },
+  {
+    "id": "circassian",
+    "name": "Circassian (Adyghe-Kabardian)",
+    "parentLanguageId": "proto-northwest-caucasian",
+    "family": "Northwest Caucasian",
+    "branch": "Circassian",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Northwest Caucasus, diaspora",
+    "description": "Circassian Northwest Caucasian languages."
+  },
+  {
+    "id": "ubykh",
+    "name": "Ubykh",
+    "parentLanguageId": "proto-northwest-caucasian",
+    "family": "Northwest Caucasian",
+    "branch": "Circassian",
+    "approxDate": "c. 1500–1992 CE",
+    "region": "Northwest Caucasus, Turkey",
+    "description": "Extinct Northwest Caucasian language; famous for ~84 consonants."
+  },
+
+  {
+    "id": "proto-kartvelian",
+    "name": "Proto-Kartvelian",
+    "parentLanguageId": null,
+    "family": "Kartvelian",
+    "branch": "Proto",
+    "approxDate": "c. 3000 BCE",
+    "region": "South Caucasus",
+    "description": "Reconstructed ancestor of the Kartvelian family."
+  },
+  {
+    "id": "georgian",
+    "name": "Georgian",
+    "parentLanguageId": "proto-kartvelian",
+    "family": "Kartvelian",
+    "branch": "Karto-Zan",
+    "approxDate": "c. 400 CE – present",
+    "region": "Georgia",
+    "description": "Kartvelian language with its own script."
+  },
+  {
+    "id": "mingrelian",
+    "name": "Mingrelian",
+    "parentLanguageId": "proto-kartvelian",
+    "family": "Kartvelian",
+    "branch": "Zan",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Western Georgia",
+    "description": "Kartvelian language."
+  },
+  {
+    "id": "svan",
+    "name": "Svan",
+    "parentLanguageId": "proto-kartvelian",
+    "family": "Kartvelian",
+    "branch": "Svan",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Svaneti (Georgia)",
+    "description": "Most divergent Kartvelian language."
+  },
+
+  {
+    "id": "basque",
+    "name": "Basque (Euskara)",
+    "parentLanguageId": null,
+    "family": "Isolate",
+    "branch": "Isolate",
+    "approxDate": "Ancient (pre-IE)",
+    "region": "Basque Country",
+    "description": "Language isolate of the western Pyrenees."
+  },
+  {
+    "id": "sumerian",
+    "name": "Sumerian",
+    "parentLanguageId": null,
+    "family": "Isolate",
+    "branch": "Isolate",
+    "approxDate": "c. 3000–2000 BCE (spoken); literary use to c. 100 CE",
+    "region": "Mesopotamia",
+    "description": "Earliest written language; isolate."
+  },
+  {
+    "id": "elamite",
+    "name": "Elamite",
+    "parentLanguageId": null,
+    "family": "Isolate",
+    "branch": "Isolate",
+    "approxDate": "c. 2800–400 BCE",
+    "region": "Southwestern Iran",
+    "description": "Language isolate; one of the three official languages of the Achaemenid Empire."
+  },
+  {
+    "id": "hurrian",
+    "name": "Hurrian",
+    "parentLanguageId": null,
+    "family": "Hurro-Urartian",
+    "branch": "Hurro-Urartian",
+    "approxDate": "c. 2300–1000 BCE",
+    "region": "Northern Mesopotamia",
+    "description": "Hurro-Urartian language."
+  },
+  {
+    "id": "urartian",
+    "name": "Urartian",
+    "parentLanguageId": null,
+    "family": "Hurro-Urartian",
+    "branch": "Hurro-Urartian",
+    "approxDate": "c. 900–600 BCE",
+    "region": "Armenian highlands",
+    "description": "Hurro-Urartian language of Urartu."
+  },
+  {
+    "id": "etruscan",
+    "name": "Etruscan",
+    "parentLanguageId": null,
+    "family": "Tyrsenian",
+    "branch": "Tyrsenian",
+    "approxDate": "c. 700 BCE – 100 CE",
+    "region": "Etruria (central Italy)",
+    "description": "Non-Indo-European language of pre-Roman Italy."
+  },
+  {
+    "id": "iberian",
+    "name": "Iberian",
+    "parentLanguageId": null,
+    "family": "Isolate",
+    "branch": "Isolate",
+    "approxDate": "c. 600 BCE – 100 CE",
+    "region": "Eastern Iberia",
+    "description": "Unclassified pre-Roman language of eastern Spain."
+  },
+  {
+    "id": "tartessian",
+    "name": "Tartessian",
+    "parentLanguageId": null,
+    "family": "Unclassified",
+    "branch": "Unclassified",
+    "approxDate": "c. 800–500 BCE",
+    "region": "Southwestern Iberia",
+    "description": "Unclassified ancient language; possibly Celtic."
+  },
+  {
+    "id": "ainu",
+    "name": "Ainu",
+    "parentLanguageId": null,
+    "family": "Isolate",
+    "branch": "Isolate",
+    "approxDate": "Ancient – present",
+    "region": "Hokkaido, Sakhalin",
+    "description": "Language isolate; critically endangered."
+  },
+  {
+    "id": "nivkh",
+    "name": "Nivkh (Gilyak)",
+    "parentLanguageId": null,
+    "family": "Isolate",
+    "branch": "Isolate",
+    "approxDate": "Ancient – present",
+    "region": "Sakhalin, Amur",
+    "description": "Language isolate of the Russian Far East."
+  },
+  {
+    "id": "burushaski",
+    "name": "Burushaski",
+    "parentLanguageId": null,
+    "family": "Isolate",
+    "branch": "Isolate",
+    "approxDate": "Ancient – present",
+    "region": "Hunza (Pakistan)",
+    "description": "Language isolate of the Karakoram."
+  },
+  {
+    "id": "ket",
+    "name": "Ket",
+    "parentLanguageId": null,
+    "family": "Yeniseian",
+    "branch": "Yeniseian",
+    "approxDate": "Ancient – present",
+    "region": "Central Siberia",
+    "description": "Last surviving Yeniseian language; possibly related to Na-Dené."
+  },
+
+  {
+    "id": "proto-eskaleut",
+    "name": "Proto-Eskimo-Aleut",
+    "parentLanguageId": null,
+    "family": "Eskimo-Aleut",
+    "branch": "Proto",
+    "approxDate": "c. 2000 BCE",
+    "region": "Beringia",
+    "description": "Reconstructed ancestor of Eskimo-Aleut."
+  },
+  {
+    "id": "inuktitut",
+    "name": "Inuktitut",
+    "parentLanguageId": "proto-eskaleut",
+    "family": "Eskimo-Aleut",
+    "branch": "Inuit",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Canadian Arctic",
+    "description": "Inuit Eskimo-Aleut language."
+  },
+  {
+    "id": "kalaallisut",
+    "name": "Kalaallisut (Greenlandic)",
+    "parentLanguageId": "proto-eskaleut",
+    "family": "Eskimo-Aleut",
+    "branch": "Inuit",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Greenland",
+    "description": "West Greenlandic; official language of Greenland."
+  },
+  {
+    "id": "yupik",
+    "name": "Yupik languages",
+    "parentLanguageId": "proto-eskaleut",
+    "family": "Eskimo-Aleut",
+    "branch": "Yupik",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Alaska, Russian Far East",
+    "description": "Yupik branch of Eskimo-Aleut."
+  },
+  {
+    "id": "aleut",
+    "name": "Aleut",
+    "parentLanguageId": "proto-eskaleut",
+    "family": "Eskimo-Aleut",
+    "branch": "Aleut",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Aleutian Islands",
+    "description": "Aleut branch of Eskimo-Aleut."
+  },
+
+  {
+    "id": "proto-na-dene",
+    "name": "Proto-Na-Dené",
+    "parentLanguageId": null,
+    "family": "Na-Dené",
+    "branch": "Proto",
+    "approxDate": "c. 5000 BCE",
+    "region": "Northwestern North America",
+    "description": "Reconstructed ancestor of Na-Dené."
+  },
+  {
+    "id": "navajo",
+    "name": "Navajo (Diné Bizaad)",
+    "parentLanguageId": "proto-na-dene",
+    "family": "Na-Dené",
+    "branch": "Athabaskan",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Southwestern US",
+    "description": "Southern Athabaskan language."
+  },
+  {
+    "id": "apache",
+    "name": "Apache languages",
+    "parentLanguageId": "proto-na-dene",
+    "family": "Na-Dené",
+    "branch": "Athabaskan",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Southwestern US",
+    "description": "Southern Athabaskan languages."
+  },
+  {
+    "id": "tlingit",
+    "name": "Tlingit",
+    "parentLanguageId": "proto-na-dene",
+    "family": "Na-Dené",
+    "branch": "Tlingit",
+    "approxDate": "c. 1500 CE – present",
+    "region": "SE Alaska, BC",
+    "description": "Na-Dené language."
+  },
+
+  {
+    "id": "proto-algic",
+    "name": "Proto-Algic",
+    "parentLanguageId": null,
+    "family": "Algic",
+    "branch": "Proto",
+    "approxDate": "c. 5000 BCE",
+    "region": "Northwestern North America (pre-migration)",
+    "description": "Reconstructed ancestor of Algic; includes Algonquian + Yurok + Wiyot."
+  },
+  {
+    "id": "proto-algonquian",
+    "name": "Proto-Algonquian",
+    "parentLanguageId": "proto-algic",
+    "family": "Algic",
+    "branch": "Algonquian",
+    "approxDate": "c. 1000 BCE",
+    "region": "Northeast North America",
+    "description": "Reconstructed ancestor of the Algonquian languages."
+  },
+  {
+    "id": "cree",
+    "name": "Cree",
+    "parentLanguageId": "proto-algonquian",
+    "family": "Algic",
+    "branch": "Algonquian",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Canada, northern US",
+    "description": "Central Algonquian dialect continuum."
+  },
+  {
+    "id": "ojibwe",
+    "name": "Ojibwe (Anishinaabemowin)",
+    "parentLanguageId": "proto-algonquian",
+    "family": "Algic",
+    "branch": "Algonquian",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Great Lakes region",
+    "description": "Central Algonquian language."
+  },
+  {
+    "id": "blackfoot",
+    "name": "Blackfoot",
+    "parentLanguageId": "proto-algonquian",
+    "family": "Algic",
+    "branch": "Algonquian",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Northern Plains",
+    "description": "Plains Algonquian language."
+  },
+  {
+    "id": "cheyenne",
+    "name": "Cheyenne",
+    "parentLanguageId": "proto-algonquian",
+    "family": "Algic",
+    "branch": "Algonquian",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Northern Plains",
+    "description": "Plains Algonquian language."
+  },
+  {
+    "id": "mikmaq",
+    "name": "Mi'kmaq",
+    "parentLanguageId": "proto-algonquian",
+    "family": "Algic",
+    "branch": "Algonquian",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Maritime Canada, Maine",
+    "description": "Eastern Algonquian language."
+  },
+
+  {
+    "id": "proto-iroquoian",
+    "name": "Proto-Iroquoian",
+    "parentLanguageId": null,
+    "family": "Iroquoian",
+    "branch": "Proto",
+    "approxDate": "c. 2000 BCE",
+    "region": "Eastern North America",
+    "description": "Reconstructed ancestor of the Iroquoian family."
+  },
+  {
+    "id": "mohawk",
+    "name": "Mohawk",
+    "parentLanguageId": "proto-iroquoian",
+    "family": "Iroquoian",
+    "branch": "Northern Iroquoian",
+    "approxDate": "c. 1500 CE – present",
+    "region": "NY, Ontario, Quebec",
+    "description": "Northern Iroquoian language."
+  },
+  {
+    "id": "cherokee",
+    "name": "Cherokee",
+    "parentLanguageId": "proto-iroquoian",
+    "family": "Iroquoian",
+    "branch": "Southern Iroquoian",
+    "approxDate": "c. 1500 CE – present",
+    "region": "SE United States, Oklahoma",
+    "description": "Sole Southern Iroquoian language; Sequoyah syllabary."
+  },
+  {
+    "id": "oneida",
+    "name": "Oneida",
+    "parentLanguageId": "proto-iroquoian",
+    "family": "Iroquoian",
+    "branch": "Northern Iroquoian",
+    "approxDate": "c. 1500 CE – present",
+    "region": "NY, Wisconsin, Ontario",
+    "description": "Northern Iroquoian language."
+  },
+
+  {
+    "id": "proto-siouan",
+    "name": "Proto-Siouan",
+    "parentLanguageId": null,
+    "family": "Siouan",
+    "branch": "Proto",
+    "approxDate": "c. 1000 BCE",
+    "region": "Eastern North America",
+    "description": "Reconstructed ancestor of the Siouan family."
+  },
+  {
+    "id": "lakota",
+    "name": "Lakota",
+    "parentLanguageId": "proto-siouan",
+    "family": "Siouan",
+    "branch": "Siouan",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Northern Plains",
+    "description": "Mississippi Valley Siouan language."
+  },
+  {
+    "id": "dakota",
+    "name": "Dakota",
+    "parentLanguageId": "proto-siouan",
+    "family": "Siouan",
+    "branch": "Siouan",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Northern Plains",
+    "description": "Mississippi Valley Siouan language."
+  },
+  {
+    "id": "crow",
+    "name": "Crow",
+    "parentLanguageId": "proto-siouan",
+    "family": "Siouan",
+    "branch": "Siouan",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Montana",
+    "description": "Missouri Valley Siouan language."
+  },
+
+  {
+    "id": "proto-uto-aztecan",
+    "name": "Proto-Uto-Aztecan",
+    "parentLanguageId": null,
+    "family": "Uto-Aztecan",
+    "branch": "Proto",
+    "approxDate": "c. 3000 BCE",
+    "region": "Southwestern North America",
+    "description": "Reconstructed ancestor of the Uto-Aztecan family."
+  },
+  {
+    "id": "classical-nahuatl",
+    "name": "Classical Nahuatl",
+    "parentLanguageId": "proto-uto-aztecan",
+    "family": "Uto-Aztecan",
+    "branch": "Nahuan",
+    "approxDate": "c. 1400–1600 CE",
+    "region": "Central Mexico",
+    "description": "Language of the Aztec Empire."
+  },
+  {
+    "id": "nahuatl",
+    "name": "Nahuatl",
+    "parentLanguageId": "classical-nahuatl",
+    "family": "Uto-Aztecan",
+    "branch": "Nahuan",
+    "approxDate": "c. 1600 CE – present",
+    "region": "Mexico",
+    "description": "Modern Nahuatl dialect continuum."
+  },
+  {
+    "id": "hopi",
+    "name": "Hopi",
+    "parentLanguageId": "proto-uto-aztecan",
+    "family": "Uto-Aztecan",
+    "branch": "Northern Uto-Aztecan",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Arizona",
+    "description": "Northern Uto-Aztecan language."
+  },
+  {
+    "id": "shoshone",
+    "name": "Shoshone",
+    "parentLanguageId": "proto-uto-aztecan",
+    "family": "Uto-Aztecan",
+    "branch": "Northern Uto-Aztecan",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Great Basin",
+    "description": "Numic Uto-Aztecan language."
+  },
+  {
+    "id": "comanche",
+    "name": "Comanche",
+    "parentLanguageId": "proto-uto-aztecan",
+    "family": "Uto-Aztecan",
+    "branch": "Northern Uto-Aztecan",
+    "approxDate": "c. 1700 CE – present",
+    "region": "Southern Plains",
+    "description": "Numic Uto-Aztecan language."
+  },
+
+  {
+    "id": "proto-mayan",
+    "name": "Proto-Mayan",
+    "parentLanguageId": null,
+    "family": "Mayan",
+    "branch": "Proto",
+    "approxDate": "c. 2000 BCE",
+    "region": "Guatemalan highlands",
+    "description": "Reconstructed ancestor of the Mayan family."
+  },
+  {
+    "id": "classic-maya",
+    "name": "Classic Maya",
+    "parentLanguageId": "proto-mayan",
+    "family": "Mayan",
+    "branch": "Mayan",
+    "approxDate": "c. 200–900 CE",
+    "region": "Maya lowlands",
+    "description": "Language of the Classic Maya inscriptions."
+  },
+  {
+    "id": "yucatec-maya",
+    "name": "Yucatec Maya",
+    "parentLanguageId": "proto-mayan",
+    "family": "Mayan",
+    "branch": "Yucatecan",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Yucatán",
+    "description": "Yucatecan Mayan language."
+  },
+  {
+    "id": "kiche",
+    "name": "K'iche'",
+    "parentLanguageId": "proto-mayan",
+    "family": "Mayan",
+    "branch": "Quichean",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Guatemalan highlands",
+    "description": "Quichean Mayan language; Popol Vuh."
+  },
+  {
+    "id": "tzotzil",
+    "name": "Tzotzil",
+    "parentLanguageId": "proto-mayan",
+    "family": "Mayan",
+    "branch": "Tzeltalan",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Chiapas",
+    "description": "Tzeltalan Mayan language."
+  },
+
+  {
+    "id": "proto-otomanguean",
+    "name": "Proto-Otomanguean",
+    "parentLanguageId": null,
+    "family": "Otomanguean",
+    "branch": "Proto",
+    "approxDate": "c. 2000 BCE",
+    "region": "Mesoamerica",
+    "description": "Reconstructed ancestor of Otomanguean."
+  },
+  {
+    "id": "zapotec",
+    "name": "Zapotec",
+    "parentLanguageId": "proto-otomanguean",
+    "family": "Otomanguean",
+    "branch": "Zapotecan",
+    "approxDate": "c. 500 BCE – present",
+    "region": "Oaxaca",
+    "description": "Zapotecan Otomanguean languages."
+  },
+  {
+    "id": "mixtec",
+    "name": "Mixtec",
+    "parentLanguageId": "proto-otomanguean",
+    "family": "Otomanguean",
+    "branch": "Mixtecan",
+    "approxDate": "c. 1000 CE – present",
+    "region": "Oaxaca, Puebla, Guerrero",
+    "description": "Mixtecan Otomanguean languages."
+  },
+  {
+    "id": "otomi",
+    "name": "Otomi",
+    "parentLanguageId": "proto-otomanguean",
+    "family": "Otomanguean",
+    "branch": "Oto-Pamean",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Central Mexico",
+    "description": "Oto-Pamean Otomanguean language."
+  },
+
+  {
+    "id": "purepecha",
+    "name": "Purépecha (Tarascan)",
+    "parentLanguageId": null,
+    "family": "Isolate",
+    "branch": "Isolate",
+    "approxDate": "c. 1000 CE – present",
+    "region": "Michoacán",
+    "description": "Language isolate of western Mexico."
+  },
+  {
+    "id": "huave",
+    "name": "Huave",
+    "parentLanguageId": null,
+    "family": "Isolate",
+    "branch": "Isolate",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Oaxaca coast",
+    "description": "Language isolate."
+  },
+
+  {
+    "id": "proto-quechuan",
+    "name": "Proto-Quechuan",
+    "parentLanguageId": null,
+    "family": "Quechuan",
+    "branch": "Proto",
+    "approxDate": "c. 500 CE",
+    "region": "Central Andes",
+    "description": "Reconstructed ancestor of the Quechuan languages."
+  },
+  {
+    "id": "classical-quechua",
+    "name": "Classical Quechua",
+    "parentLanguageId": "proto-quechuan",
+    "family": "Quechuan",
+    "branch": "Quechuan",
+    "approxDate": "c. 1400–1600 CE",
+    "region": "Inca Empire",
+    "description": "Lingua franca of the Inca Empire."
+  },
+  {
+    "id": "quechua",
+    "name": "Quechua",
+    "parentLanguageId": "classical-quechua",
+    "family": "Quechuan",
+    "branch": "Quechuan",
+    "approxDate": "c. 1600 CE – present",
+    "region": "Andes",
+    "description": "Modern Quechua dialect continuum (Cuzco, Ayacucho, etc.)."
+  },
+  {
+    "id": "aymara",
+    "name": "Aymara",
+    "parentLanguageId": null,
+    "family": "Aymaran",
+    "branch": "Aymaran",
+    "approxDate": "c. 1000 CE – present",
+    "region": "Altiplano (Bolivia/Peru)",
+    "description": "Aymaran language."
+  },
+  {
+    "id": "guarani",
+    "name": "Guaraní",
+    "parentLanguageId": null,
+    "family": "Tupian",
+    "branch": "Tupi-Guarani",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Paraguay, surrounding regions",
+    "description": "Tupi-Guarani language; co-official in Paraguay."
+  },
+  {
+    "id": "tupi",
+    "name": "Old Tupi",
+    "parentLanguageId": null,
+    "family": "Tupian",
+    "branch": "Tupi-Guarani",
+    "approxDate": "c. 1500–1800 CE",
+    "region": "Coastal Brazil",
+    "description": "Lingua franca of colonial Brazil."
+  },
+  {
+    "id": "mapudungun",
+    "name": "Mapudungun",
+    "parentLanguageId": null,
+    "family": "Araucanian",
+    "branch": "Araucanian",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Chile, Argentina",
+    "description": "Araucanian language of the Mapuche."
+  },
+  {
+    "id": "yagán",
+    "name": "Yagán",
+    "parentLanguageId": null,
+    "family": "Isolate",
+    "branch": "Isolate",
+    "approxDate": "c. 1500 CE – present (nearly extinct)",
+    "region": "Tierra del Fuego",
+    "description": "Language isolate; critically endangered."
+  },
+
+  {
+    "id": "proto-pama-nyungan",
+    "name": "Proto-Pama-Nyungan",
+    "parentLanguageId": null,
+    "family": "Pama-Nyungan",
+    "branch": "Proto",
+    "approxDate": "c. 3000 BCE",
+    "region": "Australia",
+    "description": "Reconstructed ancestor of the Pama-Nyungan family."
+  },
+  {
+    "id": "warlpiri",
+    "name": "Warlpiri",
+    "parentLanguageId": "proto-pama-nyungan",
+    "family": "Pama-Nyungan",
+    "branch": "Ngumpin-Yapa",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Central Australia",
+    "description": "Pama-Nyungan language."
+  },
+  {
+    "id": "pitjantjatjara",
+    "name": "Pitjantjatjara",
+    "parentLanguageId": "proto-pama-nyungan",
+    "family": "Pama-Nyungan",
+    "branch": "Wati",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Central Australia",
+    "description": "Western Desert Pama-Nyungan language."
+  },
+  {
+    "id": "tiwi",
+    "name": "Tiwi",
+    "parentLanguageId": null,
+    "family": "Isolate",
+    "branch": "Isolate",
+    "approxDate": "c. 1500 CE – present",
+    "region": "Tiwi Islands (Northern Australia)",
+    "description": "Non-Pama-Nyungan language isolate."
+  },
+
+  {
+    "id": "tok-pisin",
+    "name": "Tok Pisin",
+    "parentLanguageId": "english",
+    "family": "Creole",
+    "branch": "English-based",
+    "approxDate": "c. 1900 CE – present",
+    "region": "Papua New Guinea",
+    "description": "English-based creole; national language of Papua New Guinea."
+  },
+  {
+    "id": "bislama",
+    "name": "Bislama",
+    "parentLanguageId": "english",
+    "family": "Creole",
+    "branch": "English-based",
+    "approxDate": "c. 1900 CE – present",
+    "region": "Vanuatu",
+    "description": "English-based creole."
+  },
+  {
+    "id": "jamaican-patois",
+    "name": "Jamaican Patois",
+    "parentLanguageId": "english",
+    "family": "Creole",
+    "branch": "English-based",
+    "approxDate": "c. 1700 CE – present",
+    "region": "Jamaica",
+    "description": "English-based creole."
+  },
+  {
+    "id": "papiamento",
+    "name": "Papiamento",
+    "parentLanguageId": "portuguese",
+    "family": "Creole",
+    "branch": "Iberian-based",
+    "approxDate": "c. 1700 CE – present",
+    "region": "Dutch Caribbean (Aruba, Curaçao, Bonaire)",
+    "description": "Iberian-based creole with Dutch and African elements."
+  },
+  {
+    "id": "tok-bichelamar",
+    "name": "Pijin",
+    "parentLanguageId": "english",
+    "family": "Creole",
+    "branch": "English-based",
+    "approxDate": "c. 1900 CE – present",
+    "region": "Solomon Islands",
+    "description": "English-based creole."
+  },
+
+  {
+    "id": "esperanto",
+    "name": "Esperanto",
+    "parentLanguageId": null,
+    "family": "Constructed",
+    "branch": "Auxiliary",
+    "approxDate": "1887 CE – present",
+    "region": "International",
+    "description": "International auxiliary language created by L. L. Zamenhof."
+  },
+  {
+    "id": "interlingua",
+    "name": "Interlingua",
+    "parentLanguageId": null,
+    "family": "Constructed",
+    "branch": "Auxiliary",
+    "approxDate": "1951 CE – present",
+    "region": "International",
+    "description": "International auxiliary language based on Romance roots."
+  },
+  {
+    "id": "ido",
+    "name": "Ido",
+    "parentLanguageId": "esperanto",
+    "family": "Constructed",
+    "branch": "Auxiliary",
+    "approxDate": "1907 CE – present",
+    "region": "International",
+    "description": "Reformed offshoot of Esperanto."
+  },
+  {
+    "id": "klingon",
+    "name": "Klingon",
+    "parentLanguageId": null,
+    "family": "Constructed",
+    "branch": "Artistic",
+    "approxDate": "1984 CE – present",
+    "region": "Fictional (Star Trek)",
+    "description": "Constructed language created by Marc Okrand."
+  },
+  {
+    "id": "quenya",
+    "name": "Quenya",
+    "parentLanguageId": null,
+    "family": "Constructed",
+    "branch": "Artistic",
+    "approxDate": "c. 1915 CE – present",
+    "region": "Fictional (Tolkien legendarium)",
+    "description": "Elvish language created by J.R.R. Tolkien."
+  },
+  {
+    "id": "sindarin",
+    "name": "Sindarin",
+    "parentLanguageId": null,
+    "family": "Constructed",
+    "branch": "Artistic",
+    "approxDate": "c. 1915 CE – present",
+    "region": "Fictional (Tolkien legendarium)",
+    "description": "Elvish language created by J.R.R. Tolkien."
+  },
+  {
+    "id": "lojban",
+    "name": "Lojban",
+    "parentLanguageId": null,
+    "family": "Constructed",
+    "branch": "Logical",
+    "approxDate": "1987 CE – present",
+    "region": "International",
+    "description": "Logical constructed language."
+  },
+  {
+    "id": "toki-pona",
+    "name": "Toki Pona",
+    "parentLanguageId": null,
+    "family": "Constructed",
+    "branch": "Philosophical",
+    "approxDate": "2001 CE – present",
+    "region": "International",
+    "description": "Minimalist constructed language with ~120 words."
+  },
+
+  {
+    "id": "asl",
+    "name": "American Sign Language",
+    "parentLanguageId": null,
+    "family": "French Sign",
+    "branch": "Sign Language",
+    "approxDate": "c. 1817 CE – present",
+    "region": "United States, Canada",
+    "description": "Sign language descended from French Sign Language."
+  },
+  {
+    "id": "bsl",
+    "name": "British Sign Language",
+    "parentLanguageId": null,
+    "family": "BANZSL",
+    "branch": "Sign Language",
+    "approxDate": "c. 1700 CE – present",
+    "region": "United Kingdom",
+    "description": "Sign language; ancestor of Australian and New Zealand Sign Languages."
+  },
+  {
+    "id": "lsf",
+    "name": "French Sign Language (LSF)",
+    "parentLanguageId": null,
+    "family": "French Sign",
+    "branch": "Sign Language",
+    "approxDate": "c. 1700 CE – present",
+    "region": "France",
+    "description": "Sign language; ancestor of ASL and many other national sign languages."
+  },
+  {
+    "id": "jsl",
+    "name": "Japanese Sign Language",
+    "parentLanguageId": null,
+    "family": "Japanese Sign",
+    "branch": "Sign Language",
+    "approxDate": "c. 1878 CE – present",
+    "region": "Japan",
+    "description": "Sign language of Japan."
+  }
+]
