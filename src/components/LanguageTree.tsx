@@ -10,6 +10,7 @@ interface Props {
 }
 
 const VIRTUAL_ROOT_ID = '__world_root__';
+const TRANSITION_MS = 280;
 
 function buildChildrenMap(languages: Language[]): Map<string, Language[]> {
   const map = new Map<string, Language[]>();
@@ -23,36 +24,30 @@ function buildChildrenMap(languages: Language[]): Map<string, Language[]> {
   return map;
 }
 
-// For each family root, find the deepest chain and expand every node on it
 function computeInitialExpanded(languages: Language[], childrenMap: Map<string, Language[]>): Set<string> {
-  const roots = languages.filter(l => l.parentLanguageId === null);
   const expanded = new Set<string>();
-
   function deepestPath(id: string): string[] {
     const children = childrenMap.get(id) ?? [];
-    if (children.length === 0) return [id];
+    if (!children.length) return [id];
     let best: string[] = [];
-    for (const child of children) {
-      const path = deepestPath(child.id);
-      if (path.length > best.length) best = path;
+    for (const c of children) {
+      const p = deepestPath(c.id);
+      if (p.length > best.length) best = p;
     }
     return [id, ...best];
   }
-
-  for (const root of roots) {
+  for (const root of languages.filter(l => l.parentLanguageId === null)) {
     const path = deepestPath(root.id);
     for (let i = 0; i < path.length - 1; i++) expanded.add(path[i]);
   }
   return expanded;
 }
 
-// Only include nodes whose parent is expanded (or whose parent is null = root)
 function getVisibleLanguages(languages: Language[], expandedIds: Set<string>, childrenMap: Map<string, Language[]>): Language[] {
   const roots = languages.filter(l => l.parentLanguageId === null);
   const visible: Language[] = [...roots];
-  const queue = [...roots.filter(l => expandedIds.has(l.id))];
-
-  while (queue.length > 0) {
+  const queue = roots.filter(l => expandedIds.has(l.id));
+  while (queue.length) {
     const node = queue.shift()!;
     for (const child of childrenMap.get(node.id) ?? []) {
       visible.push(child);
@@ -75,17 +70,21 @@ function isAncestor(node: d3.HierarchyPointNode<Language>, selectedId?: string):
 export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId, fontSize = 11 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
-  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+  const gRef = useRef<d3.Selection<SVGGElement, unknown, null, undefined> | null>(null);
+  const zoomRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null);
+  const transformRef = useRef<d3.ZoomTransform>(d3.zoomIdentity);
+  const fittedRef = useRef(false);
 
+  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const childrenMap = useMemo(() => buildChildrenMap(languages), [languages]);
 
   const [expandedIds, setExpandedIds] = useState<Set<string>>(
     () => computeInitialExpanded(languages, buildChildrenMap(languages))
   );
 
-  // Reset when language dataset changes
   useEffect(() => {
     setExpandedIds(computeInitialExpanded(languages, childrenMap));
+    fittedRef.current = false;
   }, [languages, childrenMap]);
 
   const visibleLanguages = useMemo(
@@ -94,17 +93,15 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
   );
 
   const handleNodeClick = useCallback((lang: Language) => {
-    const hasChildren = (childrenMap.get(lang.id)?.length ?? 0) > 0;
-    if (hasChildren) {
+    const hasKids = (childrenMap.get(lang.id)?.length ?? 0) > 0;
+    if (hasKids) {
       setExpandedIds(prev => {
         const next = new Set(prev);
         if (next.has(lang.id)) {
-          // Collapse: remove this node and all its descendants from expanded set
           const toRemove = [lang.id];
           let i = 0;
           while (i < toRemove.length) {
-            const id = toRemove[i++];
-            for (const child of childrenMap.get(id) ?? []) toRemove.push(child.id);
+            for (const c of childrenMap.get(toRemove[i++]) ?? []) toRemove.push(c.id);
           }
           toRemove.forEach(id => next.delete(id));
         } else {
@@ -116,84 +113,109 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
     onSelect(lang);
   }, [childrenMap, onSelect]);
 
-  // Keep D3 click handler up-to-date without re-binding
   const handleNodeClickRef = useRef(handleNodeClick);
   useEffect(() => { handleNodeClickRef.current = handleNodeClick; }, [handleNodeClick]);
 
   useEffect(() => {
     if (!containerRef.current) return;
-    const observer = new ResizeObserver(entries => {
+    const obs = new ResizeObserver(entries => {
       if (!entries[0]) return;
       const { width, height } = entries[0].contentRect;
       setDimensions({ width, height });
     });
-    observer.observe(containerRef.current);
-    return () => observer.disconnect();
+    obs.observe(containerRef.current);
+    return () => obs.disconnect();
   }, []);
 
   useEffect(() => {
     if (!svgRef.current || dimensions.width === 0 || visibleLanguages.length === 0) return;
 
+    // ── Layout ────────────────────────────────────────────────────────────────
     const virtualRoot: Language = { id: VIRTUAL_ROOT_ID, name: 'World Languages', parentLanguageId: null, family: 'Root' };
-    const withVirtualRoot = [
-      virtualRoot,
-      ...visibleLanguages.map(l => ({
-        ...l,
-        parentLanguageId: l.parentLanguageId === null ? VIRTUAL_ROOT_ID : l.parentLanguageId,
-      })),
-    ];
-
-    const stratify = d3.stratify<Language>()
-      .id(d => d.id)
-      .parentId(d => d.parentLanguageId ?? null);
+    const withVR = [virtualRoot, ...visibleLanguages.map(l => ({
+      ...l, parentLanguageId: l.parentLanguageId === null ? VIRTUAL_ROOT_ID : l.parentLanguageId,
+    }))];
 
     let root: d3.HierarchyPointNode<Language>;
     try {
-      const hierarchy = stratify(withVirtualRoot);
-      const leafCount = hierarchy.leaves().length;
-      const minSpacing = Math.max(20, Math.min(28, Math.floor(dimensions.height / Math.max(leafCount, 1))));
+      const hier = d3.stratify<Language>().id(d => d.id).parentId(d => d.parentLanguageId ?? null)(withVR);
+      const leafCount = hier.leaves().length;
+      const spacing = Math.max(20, Math.min(28, Math.floor(dimensions.height / Math.max(leafCount, 1))));
       root = d3.tree<Language>()
-        .nodeSize([minSpacing, 220])
+        .nodeSize([spacing, 220])
         .separation((a, b) => a.parent === b.parent ? 1 : 1.4)
-        (hierarchy) as d3.HierarchyPointNode<Language>;
+        (hier) as d3.HierarchyPointNode<Language>;
     } catch (e) {
       console.error('Tree layout error:', e);
       return;
     }
 
-    // Fit to view
-    const allNodes = root.descendants().filter(d => d.data.id !== VIRTUAL_ROOT_ID);
-    const xs = allNodes.map(d => d.x);
-    const ys = allNodes.map(d => d.y);
-    const minX = xs.reduce((a, b) => Math.min(a, b), Infinity);
-    const maxX = xs.reduce((a, b) => Math.max(a, b), -Infinity);
-    const minY = ys.reduce((a, b) => Math.min(a, b), Infinity);
-    const maxY = ys.reduce((a, b) => Math.max(a, b), -Infinity);
-    const scale = Math.min(0.9, Math.min(
-      dimensions.width / ((maxY - minY) + 400),
-      dimensions.height / ((maxX - minX) + 80)
-    ));
-    const tx = 120;
-    const ty = dimensions.height / 2 - ((minX + maxX) / 2) * scale;
-
     const svg = d3.select(svgRef.current);
-    svg.selectAll('*').remove();
-    const g = svg.append('g');
 
-    const zoom = d3.zoom<SVGSVGElement, unknown>()
-      .scaleExtent([0.05, 3])
-      .on('zoom', event => g.attr('transform', event.transform));
-    svg.call(zoom);
-    svg.call(zoom.transform, d3.zoomIdentity.translate(tx, ty).scale(scale));
+    // ── Initialise SVG structure once ─────────────────────────────────────────
+    if (!gRef.current) {
+      gRef.current = svg.append('g').attr('class', 'tree-root');
 
-    // Links
-    g.selectAll('.link')
-      .data(root.links().filter(l => l.source.data.id !== VIRTUAL_ROOT_ID))
-      .enter().append('path')
-      .attr('class', 'link')
-      .attr('d', d3.linkHorizontal<d3.HierarchyPointLink<Language>, d3.HierarchyPointNode<Language>>()
-        .x(d => d.y).y(d => d.x))
+      zoomRef.current = d3.zoom<SVGSVGElement, unknown>()
+        .scaleExtent([0.05, 3])
+        .on('zoom', event => {
+          transformRef.current = event.transform;
+          gRef.current?.attr('transform', event.transform);
+        });
+      svg.call(zoomRef.current);
+    } else {
+      // Re-bind zoom (SVG may have re-mounted)
+      if (zoomRef.current) svg.call(zoomRef.current);
+    }
+
+    const g = gRef.current;
+
+    // ── Fit to view — only on first data render ───────────────────────────────
+    if (!fittedRef.current && zoomRef.current) {
+      const all = root.descendants().filter(d => d.data.id !== VIRTUAL_ROOT_ID);
+      const xs = all.map(d => d.x), ys = all.map(d => d.y);
+      const minX = xs.reduce((a, b) => Math.min(a, b), Infinity);
+      const maxX = xs.reduce((a, b) => Math.max(a, b), -Infinity);
+      const minY = ys.reduce((a, b) => Math.min(a, b), Infinity);
+      const maxY = ys.reduce((a, b) => Math.max(a, b), -Infinity);
+      const scale = Math.min(0.9, Math.min(
+        dimensions.width  / ((maxY - minY) + 400),
+        dimensions.height / ((maxX - minX) + 80)
+      ));
+      const tx = 120, ty = dimensions.height / 2 - ((minX + maxX) / 2) * scale;
+      svg.call(zoomRef.current.transform, d3.zoomIdentity.translate(tx, ty).scale(scale));
+      fittedRef.current = true;
+    } else {
+      g.attr('transform', transformRef.current);
+    }
+
+    const t = d3.transition().duration(TRANSITION_MS).ease(d3.easeQuadInOut);
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+    const isSel   = (d: d3.HierarchyPointNode<Language>) => d.data.id === selectedId;
+    const isRoot  = (d: d3.HierarchyPointNode<Language>) => d.data.parentLanguageId === VIRTUAL_ROOT_ID;
+    const hasCh   = (d: d3.HierarchyPointNode<Language>) => (childrenMap.get(d.data.id)?.length ?? 0) > 0;
+    const isExp   = (d: d3.HierarchyPointNode<Language>) => expandedIds.has(d.data.id);
+    const r       = (d: d3.HierarchyPointNode<Language>) => isSel(d) ? 9 : isRoot(d) ? 7 : hasCh(d) ? 6 : 4;
+    const linkPath = d3.linkHorizontal<d3.HierarchyPointLink<Language>, d3.HierarchyPointNode<Language>>()
+      .x(d => d.y).y(d => d.x);
+
+    // ── Links — enter / update / exit ─────────────────────────────────────────
+    const linkData = root.links().filter(l => l.source.data.id !== VIRTUAL_ROOT_ID);
+    const linkSel  = g.selectAll<SVGPathElement, typeof linkData[0]>('path.link')
+      .data(linkData, d => `${d.source.data.id}→${d.target.data.id}`);
+
+    linkSel.exit().transition(t).style('opacity', 0).remove();
+
+    const linkEnter = linkSel.enter().append('path')
+      .attr('class', 'link').attr('fill', 'none')
+      .attr('d', linkPath).style('opacity', 0);
+
+    linkEnter.merge(linkSel)
+      .transition(t)
+      .style('opacity', 1)
       .attr('fill', 'none')
+      .attr('d', linkPath)
       .attr('stroke', d => {
         const hi = isAncestor(d.source, selectedId) || isAncestor(d.target, selectedId);
         return hi ? 'rgba(197,160,89,0.7)' : 'rgba(197,160,89,0.18)';
@@ -203,69 +225,84 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
         return hi ? 2 : 1;
       });
 
+    // ── Nodes — enter / update / exit ─────────────────────────────────────────
     const nodeData = root.descendants().filter(d => d.data.id !== VIRTUAL_ROOT_ID);
+    const nodeSel  = g.selectAll<SVGGElement, d3.HierarchyPointNode<Language>>('g.node')
+      .data(nodeData, d => d.data.id);
 
-    const isSelected  = (d: d3.HierarchyPointNode<Language>) => d.data.id === selectedId;
-    const isRoot      = (d: d3.HierarchyPointNode<Language>) => d.data.parentLanguageId === VIRTUAL_ROOT_ID;
-    const hasChildren = (d: d3.HierarchyPointNode<Language>) => (childrenMap.get(d.data.id)?.length ?? 0) > 0;
-    const isExp       = (d: d3.HierarchyPointNode<Language>) => expandedIds.has(d.data.id);
+    nodeSel.exit().transition(t).style('opacity', 0).remove();
 
-    const circleR = (d: d3.HierarchyPointNode<Language>) =>
-      isSelected(d) ? 9 : isRoot(d) ? 7 : hasChildren(d) ? 6 : 4;
-
-    // Nodes
-    const nodes = g.selectAll('.node')
-      .data(nodeData).enter().append('g')
+    const nodeEnter = nodeSel.enter().append('g')
       .attr('class', 'node')
       .attr('transform', d => `translate(${d.y},${d.x})`)
+      .style('opacity', 0)
       .on('click', (_e, d) => handleNodeClickRef.current(d.data))
-      .style('cursor', d => hasChildren(d) ? 'pointer' : 'default');
+      .style('cursor', d => hasCh(d) ? 'pointer' : 'default');
 
-    // Outer glow ring for family roots
-    nodes.filter(isRoot).append('circle')
-      .attr('r', 14).attr('fill', 'none')
+    // Glow ring — roots only, static
+    nodeEnter.filter(isRoot).append('circle')
+      .attr('class', 'glow-ring').attr('r', 14).attr('fill', 'none')
       .attr('stroke', 'rgba(197,160,89,0.15)').attr('stroke-width', 8);
 
-    // Main circle
-    nodes.append('circle')
-      .attr('r', circleR)
-      .attr('fill', d => isSelected(d) ? '#c5a059' : isRoot(d) ? '#1a1308' : '#0a0a0a')
-      .attr('stroke', '#c5a059')
-      .attr('stroke-width', d => isSelected(d) ? 3 : isRoot(d) ? 2 : 1.2)
-      .style('filter', d =>
-        isSelected(d) ? 'drop-shadow(0 0 8px rgba(197,160,89,0.8))'
-        : isRoot(d) ? 'drop-shadow(0 0 4px rgba(197,160,89,0.3))'
-        : 'none'
-      );
-
-    // +/− inside nodes that have children
-    nodes.filter(hasChildren).append('text')
-      .attr('dy', '0.35em')
-      .attr('text-anchor', 'middle')
-      .text(d => isExp(d) ? '−' : '+')
-      .style('font-size', d => `${circleR(d) * 1.4}px`)
-      .style('font-family', 'monospace')
-      .style('font-weight', 'bold')
-      .style('fill', d => isSelected(d) ? '#0a0a0a' : '#c5a059')
-      .style('pointer-events', 'none')
-      .style('user-select', 'none');
-
-    // Labels (with background outline for readability)
-    nodes.append('text')
-      .attr('dy', '0.31em')
-      .attr('x', d => d.children ? -(circleR(d) + 6) : (circleR(d) + 6))
-      .attr('text-anchor', d => d.children ? 'end' : 'start')
-      .text(d => d.data.name)
-      .style('font-size', d => isRoot(d) ? `${fontSize + 2}px` : `${fontSize}px`)
+    // Label background — appended before fg so it renders behind
+    nodeEnter.append('text').attr('class', 'lbl-bg')
+      .attr('stroke', '#0a0a0a').attr('stroke-width', 4).attr('stroke-linejoin', 'round')
       .style('font-family', '"Playfair Display", serif')
-      .style('font-style', 'italic')
-      .style('letter-spacing', '0.04em')
-      .style('fill', d => isSelected(d) ? '#c5a059' : isRoot(d) ? '#d4bc8a' : '#e0d8cc')
-      .style('opacity', d => isSelected(d) ? 1 : 0.85)
-      .clone(true).lower()
-      .attr('stroke', '#0a0a0a')
-      .attr('stroke-width', 4)
-      .attr('stroke-linejoin', 'round');
+      .style('font-style', 'italic').style('letter-spacing', '0.04em').attr('fill', 'none');
+
+    // Main circle
+    nodeEnter.append('circle').attr('class', 'main-circle');
+
+    // Expand icon
+    nodeEnter.filter(hasCh).append('text').attr('class', 'expand-icon')
+      .attr('dy', '0.35em').attr('text-anchor', 'middle')
+      .style('font-family', 'monospace').style('font-weight', 'bold')
+      .style('pointer-events', 'none').style('user-select', 'none');
+
+    // Label foreground
+    nodeEnter.append('text').attr('class', 'lbl-fg')
+      .style('font-family', '"Playfair Display", serif')
+      .style('font-style', 'italic').style('letter-spacing', '0.04em');
+
+    // ── Merge enter + existing, apply transitions ─────────────────────────────
+    const nodeAll = nodeEnter.merge(nodeSel);
+
+    // Position
+    nodeAll.transition(t)
+      .style('opacity', 1)
+      .attr('transform', d => `translate(${d.y},${d.x})`);
+
+    // Circle
+    nodeAll.select<SVGCircleElement>('.main-circle')
+      .transition(t)
+      .attr('r', r)
+      .attr('fill', d => isSel(d) ? '#c5a059' : isRoot(d) ? '#1a1308' : '#0a0a0a')
+      .attr('stroke', '#c5a059')
+      .attr('stroke-width', d => isSel(d) ? 3 : isRoot(d) ? 2 : 1.2)
+      .style('filter', d =>
+        isSel(d)   ? 'drop-shadow(0 0 8px rgba(197,160,89,0.8))'
+        : isRoot(d) ? 'drop-shadow(0 0 4px rgba(197,160,89,0.3))'
+        : 'none');
+
+    // Expand icon text
+    nodeAll.select<SVGTextElement>('.expand-icon')
+      .text(d => isExp(d) ? '−' : '+')
+      .style('font-size', d => `${r(d) * 1.5}px`)
+      .style('fill', d => isSel(d) ? '#0a0a0a' : '#c5a059');
+
+    // Label shared attrs
+    const applyLabel = (sel: d3.Selection<SVGTextElement, d3.HierarchyPointNode<Language>, SVGGElement, unknown>) =>
+      sel
+        .attr('dy', '0.31em')
+        .attr('x', d => d.children ? -(r(d) + 6) : (r(d) + 6))
+        .attr('text-anchor', d => d.children ? 'end' : 'start')
+        .text(d => d.data.name)
+        .style('font-size', d => isRoot(d) ? `${fontSize + 2}px` : `${fontSize}px`);
+
+    applyLabel(nodeAll.select<SVGTextElement>('.lbl-bg'));
+    applyLabel(nodeAll.select<SVGTextElement>('.lbl-fg'))
+      .style('fill', d => isSel(d) ? '#c5a059' : isRoot(d) ? '#d4bc8a' : '#e0d8cc')
+      .style('opacity', d => isSel(d) ? 1 : 0.85);
 
   }, [visibleLanguages, expandedIds, dimensions, selectedId, fontSize, childrenMap]);
 
