@@ -240,6 +240,9 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
     const linkPathFn = (d: d3.HierarchyPointLink<Language>) => {
       const sp = getPos(d.source as d3.HierarchyPointNode<Language>);
       const tp = getPos(d.target as d3.HierarchyPointNode<Language>);
+      if (yearScale) {
+        return `M${sp.y},${sp.x}L${tp.y},${tp.x}`;
+      }
       const mx = (sp.y + tp.y) / 2;
       return `M${sp.y},${sp.x}C${mx},${sp.x} ${mx},${tp.x} ${tp.y},${tp.x}`;
     };

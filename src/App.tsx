@@ -230,7 +230,8 @@ export default function App() {
             />
           </div>
 
-          {/* Timeline bar */}
+          {/* Timeline bar — only in Complete View; Timeline View has its own D3 axis */}
+          {viewMode === 'tree' && (
           <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-3/4 px-10 py-3 bg-[#050505]/70 backdrop-blur-sm rounded-full border border-gold/10 pointer-events-none hidden md:block">
             <div className="flex justify-between text-[9px] uppercase tracking-[0.25em] opacity-40 mb-2 font-mono">
               <span>−5000 BCE</span>
@@ -242,6 +243,7 @@ export default function App() {
               <div className="absolute w-2 h-2 bg-gold rounded-full top-1/2 -translate-y-1/2 right-0 shadow-[0_0_8px_#c5a059]" />
             </div>
           </div>
+          )}
         </main>
 
         {/* Detail Panel */}
