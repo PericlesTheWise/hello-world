@@ -165,12 +165,80 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
       return;
     }
 
+    const allNodes = root.descendants().filter(d => d.data.id !== VIRTUAL_ROOT_ID);
+
+    // ── Timeline positioning ──────────────────────────────────────────────────
+    const yearScale = viewMode === 'timeline'
+      ? d3.scaleLinear().domain([-5000, 2100]).range([80, dimensions.width - 200]).clamp(true)
+      : null;
+
+    // Assign each family a non-overlapping vertical band so lines from different
+    // families can never cross each other in timeline mode.
+    const nodeToFamilyId = new Map<string, string>();
+    const familyBandMap = new Map<string, { start: number; height: number; xMin: number; xMax: number }>();
+
+    if (yearScale) {
+      const familyXRange = new Map<string, { xMin: number; xMax: number }>();
+      const familyEarliestYear = new Map<string, number>();
+
+      for (const node of allNodes) {
+        let cur: d3.HierarchyPointNode<Language> | null = node;
+        while (cur.parent && cur.parent.data.id !== VIRTUAL_ROOT_ID) {
+          cur = cur.parent;
+        }
+        const fid = cur.data.id;
+        nodeToFamilyId.set(node.data.id, fid);
+
+        const range = familyXRange.get(fid) ?? { xMin: Infinity, xMax: -Infinity };
+        range.xMin = Math.min(range.xMin, node.x);
+        range.xMax = Math.max(range.xMax, node.x);
+        familyXRange.set(fid, range);
+
+        const yr = parseEarliestYear(node.data.approxDate);
+        if (yr !== null) {
+          const existing = familyEarliestYear.get(fid);
+          if (existing === undefined || yr < existing) familyEarliestYear.set(fid, yr);
+        }
+      }
+
+      const sortedFamilies = [...familyXRange.keys()].sort(
+        (a, b) => (familyEarliestYear.get(a) ?? 0) - (familyEarliestYear.get(b) ?? 0)
+      );
+
+      const bandGap = 30;
+      let curY = 0;
+      for (const fid of sortedFamilies) {
+        const range = familyXRange.get(fid)!;
+        const spread = range.xMax - range.xMin;
+        familyBandMap.set(fid, { start: curY, height: spread, xMin: range.xMin, xMax: range.xMax });
+        curY += spread + bandGap;
+      }
+    }
+
+    const getPos = (d: d3.HierarchyPointNode<Language>) => {
+      if (yearScale) {
+        const year = parseEarliestYear(d.data.approxDate);
+        const px = year != null ? yearScale(year) : yearScale(-3000);
+
+        const fid = nodeToFamilyId.get(d.data.id);
+        const band = fid ? familyBandMap.get(fid) : undefined;
+        if (band) {
+          const spread = band.xMax - band.xMin;
+          const py = spread === 0
+            ? band.start
+            : band.start + ((d.x - band.xMin) / spread) * band.height;
+          return { x: py, y: px };
+        }
+        return { x: d.x, y: px };
+      }
+      return { x: d.x, y: d.y };
+    };
+
+    // ── SVG / zoom init ───────────────────────────────────────────────────────
     const svg = d3.select(svgRef.current);
 
-    // ── Initialise SVG structure once ─────────────────────────────────────────
     if (!gRef.current) {
       gRef.current = svg.append('g').attr('class', 'tree-root');
-
       zoomRef.current = d3.zoom<SVGSVGElement, unknown>()
         .scaleExtent([0.05, 3])
         .on('zoom', event => {
@@ -179,8 +247,24 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
         });
       svg.call(zoomRef.current);
     } else {
-      // Re-bind zoom (SVG may have re-mounted)
       if (zoomRef.current) svg.call(zoomRef.current);
+    }
+
+    // ── Wheel behaviour: horizontal scroll in timeline, zoom in tree ──────────
+    if (viewMode === 'timeline' && zoomRef.current) {
+      // Block D3 zoom from consuming wheel events so our handler can drive panning.
+      zoomRef.current.filter(event => event.type !== 'wheel' && !event.button);
+      svg.on('wheel.hscroll', (event: WheelEvent) => {
+        event.preventDefault();
+        // Use whichever axis has more movement (supports both trackpad swipe and scroll wheel).
+        const delta = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY;
+        const cur = transformRef.current;
+        const next = d3.zoomIdentity.translate(cur.x - delta * 0.8, cur.y).scale(cur.k);
+        if (zoomRef.current) svg.call(zoomRef.current.transform, next);
+      }, { passive: false } as AddEventListenerOptions);
+    } else if (zoomRef.current) {
+      zoomRef.current.filter(event => !event.button);
+      svg.on('wheel.hscroll', null);
     }
 
     const g = gRef.current;
@@ -188,19 +272,20 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
     // ── Fit to view — only on first data render (or mode change) ─────────────
     if (!fittedRef.current && zoomRef.current) {
       const all = root.descendants().filter(d => d.data.id !== VIRTUAL_ROOT_ID);
-      const xs = all.map(d => d.x);
-      const minX = xs.reduce((a, b) => Math.min(a, b), Infinity);
-      const maxX = xs.reduce((a, b) => Math.max(a, b), -Infinity);
       let tx: number, ty: number, scale: number;
+
       if (viewMode === 'timeline') {
-        // In timeline mode y-axis spans the full visible width already; just center vertically
-        scale = Math.min(0.9, dimensions.height / ((maxX - minX) + 120));
+        const bandedXs = all.map(d => getPos(d).x);
+        const minBX = Math.min(...bandedXs);
+        const maxBX = Math.max(...bandedXs);
+        scale = Math.min(0.9, dimensions.height / ((maxBX - minBX) + 120));
         tx = 0;
-        ty = dimensions.height / 2 - ((minX + maxX) / 2) * scale;
+        ty = dimensions.height / 2 - ((minBX + maxBX) / 2) * scale;
       } else {
+        const xs = all.map(d => d.x);
         const ys = all.map(d => d.y);
-        const minY = ys.reduce((a, b) => Math.min(a, b), Infinity);
-        const maxY = ys.reduce((a, b) => Math.max(a, b), -Infinity);
+        const minX = Math.min(...xs), maxX = Math.max(...xs);
+        const minY = Math.min(...ys), maxY = Math.max(...ys);
         scale = Math.min(0.9, Math.min(
           dimensions.width  / ((maxY - minY) + 400),
           dimensions.height / ((maxX - minX) + 80)
@@ -208,13 +293,14 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
         tx = 120;
         ty = dimensions.height / 2 - ((minX + maxX) / 2) * scale;
       }
+
       svg.call(zoomRef.current.transform, d3.zoomIdentity.translate(tx, ty).scale(scale));
       fittedRef.current = true;
     } else {
       g.attr('transform', transformRef.current);
     }
 
-    const t = d3.transition().duration(TRANSITION_MS).ease(d3.easeQuadInOut);
+    const trans = d3.transition().duration(TRANSITION_MS).ease(d3.easeQuadInOut);
 
     // ── Helpers ───────────────────────────────────────────────────────────────
     const isSel   = (d: d3.HierarchyPointNode<Language>) => d.data.id === selectedId;
@@ -223,20 +309,36 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
     const isExp   = (d: d3.HierarchyPointNode<Language>) => expandedIds.has(d.data.id);
     const r       = (d: d3.HierarchyPointNode<Language>) => isSel(d) ? 9 : isRoot(d) ? 7 : hasCh(d) ? 6 : 4;
 
-    // ── Timeline positioning ──────────────────────────────────────────────────
-    const allNodes = root.descendants().filter(d => d.data.id !== VIRTUAL_ROOT_ID);
-    const yearScale = viewMode === 'timeline'
-      ? d3.scaleLinear().domain([-5000, 2100]).range([80, dimensions.width - 200]).clamp(true)
-      : null;
+    // ── Timeline axis ─────────────────────────────────────────────────────────
+    g.selectAll<SVGGElement, unknown>('g.timeline-axis').remove();
+    if (yearScale) {
+      const axisMaxX = allNodes.reduce((acc, node) => Math.max(acc, getPos(node).x), -Infinity);
+      const axisLineY = axisMaxX + 50;
 
-    const getPos = (d: d3.HierarchyPointNode<Language>) => {
-      if (yearScale) {
-        const year = parseEarliestYear(d.data.approxDate);
-        return { x: d.x, y: year != null ? yearScale(year) : yearScale(-3000) };
+      const axisG = g.append('g').attr('class', 'timeline-axis');
+      const tickYears = [-5000, -4000, -3000, -2000, -1000, 0, 500, 1000, 1500, 2000];
+
+      axisG.append('line')
+        .attr('x1', yearScale(-5000)).attr('x2', yearScale(2100))
+        .attr('y1', axisLineY).attr('y2', axisLineY)
+        .attr('stroke', 'rgba(197,160,89,0.25)').attr('stroke-width', 1);
+
+      for (const yr of tickYears) {
+        const px = yearScale(yr);
+        axisG.append('line')
+          .attr('x1', px).attr('x2', px)
+          .attr('y1', axisLineY - 4).attr('y2', axisLineY + 4)
+          .attr('stroke', 'rgba(197,160,89,0.4)').attr('stroke-width', 1);
+        axisG.append('text')
+          .attr('x', px).attr('y', axisLineY + 16)
+          .attr('text-anchor', 'middle')
+          .style('font-size', '9px').style('font-family', 'monospace')
+          .style('fill', 'rgba(197,160,89,0.5)')
+          .text(yr < 0 ? `${Math.abs(yr)} BCE` : yr === 0 ? '0 CE' : `${yr} CE`);
       }
-      return { x: d.x, y: d.y };
-    };
+    }
 
+    // ── Links — enter / update / exit ─────────────────────────────────────────
     const linkPathFn = (d: d3.HierarchyPointLink<Language>) => {
       const sp = getPos(d.source as d3.HierarchyPointNode<Language>);
       const tp = getPos(d.target as d3.HierarchyPointNode<Language>);
@@ -247,48 +349,18 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
       return `M${sp.y},${sp.x}C${mx},${sp.x} ${mx},${tp.x} ${tp.y},${tp.x}`;
     };
 
-    // ── Timeline axis ─────────────────────────────────────────────────────────
-    g.selectAll<SVGGElement, unknown>('g.timeline-axis').remove();
-    if (yearScale) {
-      const axisMaxX = allNodes.reduce((a, b) => Math.max(a, b.x), -Infinity);
-      const axisY = axisMaxX + 50;
-
-      const axisG = g.append('g').attr('class', 'timeline-axis');
-      const tickYears = [-5000, -4000, -3000, -2000, -1000, 0, 500, 1000, 1500, 2000];
-
-      axisG.append('line')
-        .attr('x1', yearScale(-5000)).attr('x2', yearScale(2100))
-        .attr('y1', axisY).attr('y2', axisY)
-        .attr('stroke', 'rgba(197,160,89,0.25)').attr('stroke-width', 1);
-
-      for (const yr of tickYears) {
-        const px = yearScale(yr);
-        axisG.append('line')
-          .attr('x1', px).attr('x2', px)
-          .attr('y1', axisY - 4).attr('y2', axisY + 4)
-          .attr('stroke', 'rgba(197,160,89,0.4)').attr('stroke-width', 1);
-        axisG.append('text')
-          .attr('x', px).attr('y', axisY + 16)
-          .attr('text-anchor', 'middle')
-          .style('font-size', '9px').style('font-family', 'monospace')
-          .style('fill', 'rgba(197,160,89,0.5)')
-          .text(yr < 0 ? `${Math.abs(yr)} BCE` : yr === 0 ? '0 CE' : `${yr} CE`);
-      }
-    }
-
-    // ── Links — enter / update / exit ─────────────────────────────────────────
     const linkData = root.links().filter(l => l.source.data.id !== VIRTUAL_ROOT_ID);
     const linkSel  = g.selectAll<SVGPathElement, typeof linkData[0]>('path.link')
       .data(linkData, d => `${d.source.data.id}→${d.target.data.id}`);
 
-    linkSel.exit().transition(t).style('opacity', 0).remove();
+    linkSel.exit().transition(trans).style('opacity', 0).remove();
 
     const linkEnter = linkSel.enter().append('path')
       .attr('class', 'link').attr('fill', 'none')
       .attr('d', linkPathFn).style('opacity', 0);
 
     linkEnter.merge(linkSel)
-      .transition(t)
+      .transition(trans)
       .style('opacity', 1)
       .attr('fill', 'none')
       .attr('d', linkPathFn)
@@ -302,11 +374,10 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
       });
 
     // ── Nodes — enter / update / exit ─────────────────────────────────────────
-    const nodeData = allNodes;
-    const nodeSel  = g.selectAll<SVGGElement, d3.HierarchyPointNode<Language>>('g.node')
-      .data(nodeData, d => d.data.id);
+    const nodeSel = g.selectAll<SVGGElement, d3.HierarchyPointNode<Language>>('g.node')
+      .data(allNodes, d => d.data.id);
 
-    nodeSel.exit().transition(t).style('opacity', 0).remove();
+    nodeSel.exit().transition(trans).style('opacity', 0).remove();
 
     const nodeEnter = nodeSel.enter().append('g')
       .attr('class', 'node')
@@ -315,27 +386,22 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
       .on('click', (_e, d) => handleNodeClickRef.current(d.data))
       .style('cursor', d => hasCh(d) ? 'pointer' : 'default');
 
-    // Glow ring — roots only, static
     nodeEnter.filter(isRoot).append('circle')
       .attr('class', 'glow-ring').attr('r', 14).attr('fill', 'none')
       .attr('stroke', 'rgba(197,160,89,0.15)').attr('stroke-width', 8);
 
-    // Label background — appended before fg so it renders behind
     nodeEnter.append('text').attr('class', 'lbl-bg')
       .attr('stroke', '#0a0a0a').attr('stroke-width', 4).attr('stroke-linejoin', 'round')
       .style('font-family', '"Playfair Display", serif')
       .style('font-style', 'italic').style('letter-spacing', '0.04em').attr('fill', 'none');
 
-    // Main circle
     nodeEnter.append('circle').attr('class', 'main-circle');
 
-    // Expand icon
     nodeEnter.filter(hasCh).append('text').attr('class', 'expand-icon')
       .attr('dy', '0.35em').attr('text-anchor', 'middle')
       .style('font-family', 'monospace').style('font-weight', 'bold')
       .style('pointer-events', 'none').style('user-select', 'none');
 
-    // Label foreground
     nodeEnter.append('text').attr('class', 'lbl-fg')
       .style('font-family', '"Playfair Display", serif')
       .style('font-style', 'italic').style('letter-spacing', '0.04em');
@@ -343,14 +409,12 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
     // ── Merge enter + existing, apply transitions ─────────────────────────────
     const nodeAll = nodeEnter.merge(nodeSel);
 
-    // Position
-    nodeAll.transition(t)
+    nodeAll.transition(trans)
       .style('opacity', 1)
       .attr('transform', d => { const p = getPos(d); return `translate(${p.y},${p.x})`; });
 
-    // Circle
     nodeAll.select<SVGCircleElement>('.main-circle')
-      .transition(t)
+      .transition(trans)
       .attr('r', r)
       .attr('fill', d => isSel(d) ? '#c5a059' : isRoot(d) ? '#1a1308' : '#0a0a0a')
       .attr('stroke', '#c5a059')
@@ -360,13 +424,11 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
         : isRoot(d) ? 'drop-shadow(0 0 4px rgba(197,160,89,0.3))'
         : 'none');
 
-    // Expand icon text
     nodeAll.select<SVGTextElement>('.expand-icon')
       .text(d => isExp(d) ? '−' : '+')
       .style('font-size', d => `${r(d) * 1.5}px`)
       .style('fill', d => isSel(d) ? '#0a0a0a' : '#c5a059');
 
-    // Label shared attrs
     const applyLabel = (sel: d3.Selection<SVGTextElement, d3.HierarchyPointNode<Language>, SVGGElement, unknown>) =>
       sel
         .attr('dy', '0.31em')
@@ -380,6 +442,9 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
       .style('fill', d => isSel(d) ? '#c5a059' : isRoot(d) ? '#d4bc8a' : '#e0d8cc')
       .style('opacity', d => isSel(d) ? 1 : 0.85);
 
+    return () => {
+      if (svgRef.current) d3.select(svgRef.current).on('wheel.hscroll', null);
+    };
   }, [visibleLanguages, expandedIds, dimensions, selectedId, fontSize, childrenMap, viewMode]);
 
   return (
@@ -391,7 +456,9 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
         </div>
       )}
       <div className="absolute bottom-4 right-4 text-[9px] text-gold/30 font-mono uppercase tracking-widest">
-        Scroll to zoom · Drag to pan · Click node to expand / collapse
+        {viewMode === 'timeline'
+          ? 'Scroll to pan · Drag to pan · Click node to expand / collapse'
+          : 'Scroll to zoom · Drag to pan · Click node to expand / collapse'}
       </div>
     </div>
   );
