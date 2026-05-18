@@ -51,25 +51,40 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
     let root: d3.HierarchyPointNode<Language>;
     try {
       const hierarchy = stratify(withVirtualRoot);
+      const nodeCount = hierarchy.leaves().length;
+      const minSpacing = Math.max(20, Math.min(28, Math.floor(dimensions.height / Math.max(nodeCount, 1))));
       const treeLayout = d3.tree<Language>()
-        .size([dimensions.height - 120, dimensions.width - 260])
-        .separation((a, b) => (a.parent === b.parent ? 1 : 1.5));
+        .nodeSize([minSpacing, 220])
+        .separation((a, b) => (a.parent === b.parent ? 1 : 1.4));
       root = treeLayout(hierarchy) as d3.HierarchyPointNode<Language>;
     } catch (e) {
       console.error('Tree layout error:', e);
       return;
     }
 
+    // Compute tree extents to fit-to-view on load
+    const allNodes = root.descendants().filter(d => d.data.id !== VIRTUAL_ROOT_ID);
+    const xs = allNodes.map(d => d.x);
+    const ys = allNodes.map(d => d.y);
+    const minX = Math.min(...xs), maxX = Math.max(...xs);
+    const minY = Math.min(...ys), maxY = Math.max(...ys);
+    const treeW = maxY - minY + 400;
+    const treeH = maxX - minX + 80;
+    const scale = Math.min(1, Math.min(dimensions.width / treeW, dimensions.height / treeH));
+    const tx = 120;
+    const ty = dimensions.height / 2 - (minX + maxX) / 2 * scale;
+
     const svg = d3.select(svgRef.current);
     svg.selectAll('*').remove();
 
     // Zoom/pan
     const zoom = d3.zoom<SVGSVGElement, unknown>()
-      .scaleExtent([0.2, 3])
+      .scaleExtent([0.05, 3])
       .on('zoom', (event) => g.attr('transform', event.transform));
     svg.call(zoom);
+    svg.call(zoom.transform, d3.zoomIdentity.translate(tx, ty).scale(scale));
 
-    const g = svg.append('g').attr('transform', 'translate(120,60)');
+    const g = svg.append('g').attr('transform', `translate(${tx},${ty}) scale(${scale})`);
 
     // Links
     g.selectAll('.link')
