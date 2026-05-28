@@ -182,25 +182,37 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
     const timelineY = new Map<string, number>();
     if (yearScale) {
       const LEAF_SPACING = 34;
+      // Minimum visual gap between any two nodes (one-third of leaf spacing).
+      const MIN_GAP = LEAF_SPACING / 3;
       let leafIdx = 0;
 
-      function assignY(node: d3.HierarchyPointNode<Language>): number {
+      function assignY(node: d3.HierarchyPointNode<Language>): void {
         const kids = node.children ?? [];
         if (node.data.id === VIRTUAL_ROOT_ID) {
           kids.forEach(c => assignY(c));
-          return 0;
+          return;
         }
         if (kids.length === 0) {
-          const y = leafIdx * LEAF_SPACING;
+          // Leaf: take the next sequential slot.
+          timelineY.set(node.data.id, leafIdx * LEAF_SPACING);
           leafIdx++;
-          timelineY.set(node.data.id, y);
-          return y;
+          return;
         }
         kids.forEach(c => assignY(c));
-        const childYs = kids.map(c => timelineY.get(c.data.id) ?? 0);
-        const y = (Math.min(...childYs) + Math.max(...childYs)) / 2;
+        const childYs = kids.map(c => timelineY.get(c.data.id)!);
+        const mid = (Math.min(...childYs) + Math.max(...childYs)) / 2;
+
+        // With an odd number of equally-spaced leaves the midpoint lands exactly
+        // on the middle leaf, and ancestor chains all collapse to the same y.
+        // Walk outward from the ideal midpoint in alternating directions until
+        // we find a position that is at least MIN_GAP from every placed node.
+        const placed = [...timelineY.values()];
+        let y = mid;
+        for (let step = 1; step <= 12 && placed.some(v => Math.abs(v - y) < MIN_GAP); step++) {
+          const sign = step % 2 === 0 ? 1 : -1;
+          y = mid + sign * Math.ceil(step / 2) * MIN_GAP;
+        }
         timelineY.set(node.data.id, y);
-        return y;
       }
       assignY(root);
     }
