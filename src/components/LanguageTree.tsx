@@ -8,19 +8,39 @@ interface Props {
   selectedId?: string;
   fontSize?: number;
   viewMode?: 'tree' | 'timeline';
+  currentYear?: number;
 }
 
 const VIRTUAL_ROOT_ID = '__world_root__';
 const TRANSITION_MS = 280;
 
+// Shared temporal domain — used by both the SVG yearScale and the App scrubber
+// so the slider handle and the tree's time axis scale identically.
+export const TIMELINE_MIN_YEAR = -5000;
+export const TIMELINE_MAX_YEAR = 2025;
+
 function parseEarliestYear(approxDate?: string): number | null {
   if (!approxDate) return null;
-  const s = approxDate.replace(/,/g, '').replace(/\+/g, '');
-  const numbers = s.match(/(\d+)/g);
-  if (!numbers) return null;
-  const isBCE = /BCE/i.test(s);
-  const values = numbers.map(n => isBCE ? -parseInt(n) : parseInt(n));
-  return isBCE ? Math.min(...values) : Math.min(...values);
+  const s = approxDate.replace(/,/g, '');
+
+  const nums: { val: number; idx: number }[] = [];
+  const numRe = /\d+/g;
+  let m: RegExpExecArray | null;
+  while ((m = numRe.exec(s)) !== null) nums.push({ val: parseInt(m[0], 10), idx: m.index });
+  if (nums.length === 0) return null;
+
+  const eras: { bce: boolean; idx: number }[] = [];
+  const eraRe = /BCE|CE/gi;
+  while ((m = eraRe.exec(s)) !== null) eras.push({ bce: /BCE/i.test(m[0]), idx: m.index });
+
+  // Each number adopts the era marker that follows it, so a mixed range like
+  // "500 BCE – 1000 CE" reads 500 as BCE (−500) and 1000 as CE (+1000). Falls
+  // back to the last marker before it, else assumes CE.
+  const signed = nums.map(n => {
+    const era = eras.find(e => e.idx >= n.idx) ?? [...eras].reverse().find(e => e.idx < n.idx);
+    return era && era.bce ? -n.val : n.val;
+  });
+  return Math.min(...signed);
 }
 
 function buildChildrenMap(languages: Language[]): Map<string, Language[]> {
@@ -78,7 +98,7 @@ function isAncestor(node: d3.HierarchyPointNode<Language>, selectedId?: string):
   return false;
 }
 
-export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId, fontSize = 11, viewMode = 'tree' }) => {
+export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId, fontSize = 11, viewMode = 'tree', currentYear = TIMELINE_MAX_YEAR }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const gRef = useRef<d3.Selection<SVGGElement, unknown, null, undefined> | null>(null);
@@ -172,7 +192,7 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
 
     // ── Timeline positioning ──────────────────────────────────────────────────
     const yearScale = viewMode === 'timeline'
-      ? d3.scaleLinear().domain([-5000, 2100]).range([80, dimensions.width - 200]).clamp(true)
+      ? d3.scaleLinear().domain([TIMELINE_MIN_YEAR, TIMELINE_MAX_YEAR]).range([80, dimensions.width - 200]).clamp(true)
       : null;
 
     // DFS leaf-ordering: assign each visible leaf a sequential y slot, then
@@ -328,7 +348,42 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
           .style('fill', 'rgba(197,160,89,0.5)')
           .text(yr < 0 ? `${Math.abs(yr)} BCE` : yr === 0 ? '0 CE' : `${yr} CE`);
       }
+
+      // Growth front — vertical marker at the scrubber's current year. Rendered
+      // inside the zoom group so it stays pixel-aligned with the nodes.
+      const frontX = yearScale(currentYear);
+      const slotVals = allNodes.map(n => timelineY.get(n.data.id) ?? 0);
+      const frontTop = Math.min(...slotVals) - 30;
+      axisG.append('line')
+        .attr('x1', frontX).attr('x2', frontX)
+        .attr('y1', frontTop).attr('y2', axisLineY)
+        .attr('stroke', 'rgba(197,160,89,0.10)').attr('stroke-width', 10);
+      axisG.append('line')
+        .attr('x1', frontX).attr('x2', frontX)
+        .attr('y1', frontTop).attr('y2', axisLineY)
+        .attr('stroke', 'rgba(197,160,89,0.55)').attr('stroke-width', 1.5);
     }
+
+    // ── Growth filter (timeline scrubber) ─────────────────────────────────────
+    // A node has "grown" once currentYear reaches its earliest appearance year,
+    // and only if its parent has already grown — walking top-down keeps ancestry
+    // intact and guarantees links are only ever drawn between two grown nodes
+    // (no branch lines dangling toward not-yet-appeared children).
+    const grownSet = new Set<string>();
+    if (yearScale) {
+      const walk = (node: d3.HierarchyPointNode<Language>) => {
+        for (const child of node.children ?? []) {
+          const yr = parseEarliestYear(child.data.approxDate);
+          const appearsAt = yr == null ? -Infinity : yr;
+          if (appearsAt <= currentYear) {
+            grownSet.add(child.data.id);
+            walk(child);
+          }
+        }
+      };
+      walk(root);
+    }
+    const renderNodes = yearScale ? allNodes.filter(d => grownSet.has(d.data.id)) : allNodes;
 
     // ── Links — enter / update / exit ─────────────────────────────────────────
     const linkPathFn = (d: d3.HierarchyPointLink<Language>) => {
@@ -344,7 +399,10 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
       return `M${sp.y},${sp.x}C${mx},${sp.x} ${mx},${tp.x} ${tp.y},${tp.x}`;
     };
 
-    const linkData = root.links().filter(l => l.source.data.id !== VIRTUAL_ROOT_ID);
+    const linkData = root.links().filter(l =>
+      l.source.data.id !== VIRTUAL_ROOT_ID &&
+      (!yearScale || (grownSet.has(l.source.data.id) && grownSet.has(l.target.data.id)))
+    );
     const linkSel  = g.selectAll<SVGPathElement, typeof linkData[0]>('path.link')
       .data(linkData, d => `${d.source.data.id}→${d.target.data.id}`);
 
@@ -370,7 +428,7 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
 
     // ── Nodes — enter / update / exit ─────────────────────────────────────────
     const nodeSel = g.selectAll<SVGGElement, d3.HierarchyPointNode<Language>>('g.node')
-      .data(allNodes, d => d.data.id);
+      .data(renderNodes, d => d.data.id);
 
     nodeSel.exit().transition(trans).style('opacity', 0).remove();
 
@@ -447,7 +505,7 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
     return () => {
       if (svgRef.current) d3.select(svgRef.current).on('wheel.hscroll', null);
     };
-  }, [visibleLanguages, expandedIds, dimensions, selectedId, fontSize, childrenMap, viewMode]);
+  }, [visibleLanguages, expandedIds, dimensions, selectedId, fontSize, childrenMap, viewMode, currentYear]);
 
   return (
     <div ref={containerRef} className="w-full h-full relative overflow-hidden" style={{ background: '#0a0a0a' }}>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { LanguageTree } from './components/LanguageTree';
+import { LanguageTree, TIMELINE_MIN_YEAR, TIMELINE_MAX_YEAR } from './components/LanguageTree';
 import { LanguageDetail } from './components/LanguageDetail';
 import { Language } from './types';
 import { getLanguages } from './services/languageService';
@@ -15,6 +15,7 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [fontSize, setFontSize] = useState(11);
   const [viewMode, setViewMode] = useState<ViewMode>('tree');
+  const [currentYear, setCurrentYear] = useState(TIMELINE_MAX_YEAR);
 
   useEffect(() => {
     async function init() {
@@ -227,20 +228,34 @@ export default function App() {
               selectedId={selectedLanguage?.id}
               fontSize={fontSize}
               viewMode={viewMode}
+              currentYear={currentYear}
             />
           </div>
 
-          {/* Timeline bar — only in Complete View; Timeline View has its own D3 axis */}
-          {viewMode === 'tree' && (
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-3/4 px-10 py-3 bg-[#050505]/70 backdrop-blur-sm rounded-full border border-gold/10 pointer-events-none hidden md:block">
-            <div className="flex justify-between text-[9px] uppercase tracking-[0.25em] opacity-40 mb-2 font-mono">
-              <span>−5000 BCE</span>
-              <span>−2000 BCE</span>
-              <span>0 CE</span>
-              <span className="text-gold font-bold">Today</span>
+          {/* Temporal scrubber — Timeline View only; drives the "roots growing" filter */}
+          {viewMode === 'timeline' && (
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-3/4 px-8 py-4 bg-[#050505]/80 backdrop-blur-sm rounded-2xl border border-gold/15 hidden md:block">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[10px] uppercase tracking-[0.25em] text-gold/50 font-mono">Temporal Scrubber</span>
+              <span className="text-[11px] font-mono text-gold tabular-nums">
+                {currentYear < 0 ? `${Math.abs(currentYear).toLocaleString()} BCE` : `${currentYear} CE`}
+              </span>
             </div>
-            <div className="h-px bg-gold/20 relative">
-              <div className="absolute w-2 h-2 bg-gold rounded-full top-1/2 -translate-y-1/2 right-0 shadow-[0_0_8px_#c5a059]" />
+            <input
+              type="range"
+              min={TIMELINE_MIN_YEAR}
+              max={TIMELINE_MAX_YEAR}
+              step={25}
+              value={currentYear}
+              onChange={e => setCurrentYear(Number(e.target.value))}
+              className="w-full accent-gold cursor-pointer"
+              aria-label="Scrub through time to grow the language tree"
+            />
+            <div className="flex justify-between text-[9px] uppercase tracking-[0.25em] text-gold/30 mb-0 mt-1 font-mono">
+              <span>5000 BCE</span>
+              <span>2000 BCE</span>
+              <span>0 CE</span>
+              <span className="text-gold/60 font-bold">Present</span>
             </div>
           </div>
           )}
