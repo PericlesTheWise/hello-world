@@ -155,7 +155,10 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
     try {
       const hier = d3.stratify<Language>().id(d => d.id).parentId(d => d.parentLanguageId ?? null)(withVR);
       const leafCount = hier.leaves().length;
-      const spacing = Math.max(20, Math.min(28, Math.floor(dimensions.height / Math.max(leafCount, 1))));
+      // Timeline has horizontal scroll so we can afford a larger minimum without
+      // clipping content; tree mode must fit in the viewport height.
+      const [minSp, maxSp] = viewMode === 'timeline' ? [32, 40] : [20, 28];
+      const spacing = Math.max(minSp, Math.min(maxSp, Math.floor(dimensions.height / Math.max(leafCount, 1))));
       root = d3.tree<Language>()
         .nodeSize([spacing, 220])
         .separation((a, b) => a.parent === b.parent ? 1 : 1.4)
@@ -432,11 +435,18 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
       .style('font-size', d => `${r(d) * 1.5}px`)
       .style('fill', d => isSel(d) ? '#0a0a0a' : '#c5a059');
 
+    // In timeline mode the horizontal axis is year, so left/right placement
+    // based on d.children has no meaning — put all labels to the right.
+    const labelX = (d: d3.HierarchyPointNode<Language>) =>
+      yearScale ? r(d) + 6 : d.children ? -(r(d) + 6) : r(d) + 6;
+    const labelAnchor = (d: d3.HierarchyPointNode<Language>) =>
+      yearScale ? 'start' : d.children ? 'end' : 'start';
+
     const applyLabel = (sel: d3.Selection<SVGTextElement, d3.HierarchyPointNode<Language>, SVGGElement, unknown>) =>
       sel
         .attr('dy', '0.31em')
-        .attr('x', d => d.children ? -(r(d) + 6) : (r(d) + 6))
-        .attr('text-anchor', d => d.children ? 'end' : 'start')
+        .attr('x', labelX)
+        .attr('text-anchor', labelAnchor)
         .text(d => d.data.name)
         .style('font-size', d => isRoot(d) ? `${fontSize + 2}px` : `${fontSize}px`);
 
