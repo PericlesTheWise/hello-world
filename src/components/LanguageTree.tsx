@@ -175,64 +175,41 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
       ? d3.scaleLinear().domain([-5000, 2100]).range([80, dimensions.width - 200]).clamp(true)
       : null;
 
-    // Assign each family a non-overlapping vertical band so lines from different
-    // families can never cross each other in timeline mode.
-    const nodeToFamilyId = new Map<string, string>();
-    const familyBandMap = new Map<string, { start: number; height: number; xMin: number; xMax: number }>();
-
+    // DFS leaf-ordering: assign each visible leaf a sequential y slot, then
+    // place each internal node at the midpoint of its outermost leaf descendants.
+    // Every subtree occupies a contiguous, non-overlapping y-range, so elbow
+    // links from different subtrees are provably crossing-free.
+    const timelineY = new Map<string, number>();
     if (yearScale) {
-      const familyXRange = new Map<string, { xMin: number; xMax: number }>();
-      const familyEarliestYear = new Map<string, number>();
+      const LEAF_SPACING = 34;
+      let leafIdx = 0;
 
-      for (const node of allNodes) {
-        let cur: d3.HierarchyPointNode<Language> | null = node;
-        while (cur.parent && cur.parent.data.id !== VIRTUAL_ROOT_ID) {
-          cur = cur.parent;
+      function assignY(node: d3.HierarchyPointNode<Language>): number {
+        const kids = node.children ?? [];
+        if (node.data.id === VIRTUAL_ROOT_ID) {
+          kids.forEach(c => assignY(c));
+          return 0;
         }
-        const fid = cur.data.id;
-        nodeToFamilyId.set(node.data.id, fid);
-
-        const range = familyXRange.get(fid) ?? { xMin: Infinity, xMax: -Infinity };
-        range.xMin = Math.min(range.xMin, node.x);
-        range.xMax = Math.max(range.xMax, node.x);
-        familyXRange.set(fid, range);
-
-        const yr = parseEarliestYear(node.data.approxDate);
-        if (yr !== null) {
-          const existing = familyEarliestYear.get(fid);
-          if (existing === undefined || yr < existing) familyEarliestYear.set(fid, yr);
+        if (kids.length === 0) {
+          const y = leafIdx * LEAF_SPACING;
+          leafIdx++;
+          timelineY.set(node.data.id, y);
+          return y;
         }
+        kids.forEach(c => assignY(c));
+        const childYs = kids.map(c => timelineY.get(c.data.id) ?? 0);
+        const y = (Math.min(...childYs) + Math.max(...childYs)) / 2;
+        timelineY.set(node.data.id, y);
+        return y;
       }
-
-      const sortedFamilies = [...familyXRange.keys()].sort(
-        (a, b) => (familyEarliestYear.get(a) ?? 0) - (familyEarliestYear.get(b) ?? 0)
-      );
-
-      const bandGap = 30;
-      let curY = 0;
-      for (const fid of sortedFamilies) {
-        const range = familyXRange.get(fid)!;
-        const spread = range.xMax - range.xMin;
-        familyBandMap.set(fid, { start: curY, height: spread, xMin: range.xMin, xMax: range.xMax });
-        curY += spread + bandGap;
-      }
+      assignY(root);
     }
 
     const getPos = (d: d3.HierarchyPointNode<Language>) => {
       if (yearScale) {
         const year = parseEarliestYear(d.data.approxDate);
         const px = year != null ? yearScale(year) : yearScale(-3000);
-
-        const fid = nodeToFamilyId.get(d.data.id);
-        const band = fid ? familyBandMap.get(fid) : undefined;
-        if (band) {
-          const spread = band.xMax - band.xMin;
-          const py = spread === 0
-            ? band.start
-            : band.start + ((d.x - band.xMin) / spread) * band.height;
-          return { x: py, y: px };
-        }
-        return { x: d.x, y: px };
+        return { x: timelineY.get(d.data.id) ?? d.x, y: px };
       }
       return { x: d.x, y: d.y };
     };
@@ -278,9 +255,9 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
       let tx: number, ty: number, scale: number;
 
       if (viewMode === 'timeline') {
-        const bandedXs = all.map(d => getPos(d).x);
-        const minBX = Math.min(...bandedXs);
-        const maxBX = Math.max(...bandedXs);
+        const yVals = all.map(d => timelineY.get(d.data.id) ?? 0);
+        const minBX = Math.min(...yVals);
+        const maxBX = Math.max(...yVals);
         scale = Math.min(0.9, dimensions.height / ((maxBX - minBX) + 120));
         tx = 0;
         ty = dimensions.height / 2 - ((minBX + maxBX) / 2) * scale;
@@ -315,7 +292,7 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
     // ── Timeline axis ─────────────────────────────────────────────────────────
     g.selectAll<SVGGElement, unknown>('g.timeline-axis').remove();
     if (yearScale) {
-      const axisMaxX = allNodes.reduce((acc, node) => Math.max(acc, getPos(node).x), -Infinity);
+      const axisMaxX = allNodes.reduce((acc, node) => Math.max(acc, timelineY.get(node.data.id) ?? 0), -Infinity);
       const axisLineY = axisMaxX + 50;
 
       const axisG = g.append('g').attr('class', 'timeline-axis');
