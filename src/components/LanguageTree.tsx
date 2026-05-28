@@ -343,7 +343,10 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
       const sp = getPos(d.source as d3.HierarchyPointNode<Language>);
       const tp = getPos(d.target as d3.HierarchyPointNode<Language>);
       if (yearScale) {
-        return `M${sp.y},${sp.x}L${tp.y},${tp.x}`;
+        // Orthogonal elbow: branch point at the parent's year (vertical segment),
+        // then a horizontal segment out to the child. Crossing-free because each
+        // node owns a unique slot and subtrees occupy disjoint slot-bands.
+        return `M${sp.y},${sp.x}L${sp.y},${tp.x}L${tp.y},${tp.x}`;
       }
       const mx = (sp.y + tp.y) / 2;
       return `M${sp.y},${sp.x}C${mx},${sp.x} ${mx},${tp.x} ${tp.y},${tp.x}`;
