@@ -339,44 +339,70 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
     // re-layout are scheduled on it together so the diagonal motion is cohesive.
     const trans = d3.transition().duration(TRANSITION_MS).ease(d3.easeQuadInOut);
 
-    // ── Camera: fit on first render, else auto-track the growth front ──────────
-    if (!fittedRef.current && zoomRef.current && renderNodes.length) {
-      let tx: number, ty: number, scale: number;
+    // ── Camera ─────────────────────────────────────────────────────────────────
+    // Timeline mode and tree mode have fundamentally different fit strategies.
+    //
+    // The timeline maps X strictly to yearScale(year), whose range already spans
+    // (almost) the whole viewport width. The horizontal zoom is therefore chosen
+    // to make that year axis fill the width — NEVER to fit the vertical extent.
+    // (With 300+ leaves the vertical extent is ~10k px; fitting it would force a
+    // ~0.08 zoom that crushes the correctly-spaced timeline into a thin strip.)
+    // The tall vertical axis simply overflows and is panned; the camera centers
+    // the growth front on X and the grown subtree's midpoint on Y.
+    const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
 
-      if (viewMode === 'timeline') {
-        const yVals = renderNodes.map(d => timelineY.get(d.data.id) ?? 0);
-        const minBX = Math.min(...yVals);
-        const maxBX = Math.max(...yVals);
-        scale = Math.min(0.9, dimensions.height / ((maxBX - minBX) + 120));
-        // Center the growth front horizontally right from the first paint.
-        tx = dimensions.width / 2 - yearScale!(currentYear) * scale;
-        ty = dimensions.height / 2 - ((minBX + maxBX) / 2) * scale;
-      } else {
-        const xs = renderNodes.map(d => d.x);
-        const ys = renderNodes.map(d => d.y);
-        const minX = Math.min(...xs), maxX = Math.max(...xs);
-        const minY = Math.min(...ys), maxY = Math.max(...ys);
-        scale = Math.min(0.9, Math.min(
-          dimensions.width  / ((maxY - minY) + 400),
-          dimensions.height / ((maxX - minX) + 80)
-        ));
-        tx = 120;
-        ty = dimensions.height / 2 - ((minX + maxX) / 2) * scale;
-      }
+    if (yearScale && zoomRef.current && renderNodes.length) {
+      const xRange = yearScale.range();            // [80, width - 200]
+      const hSpan = Math.max(1, xRange[1] - xRange[0]);
+      const HPAD = 60;
+      // Fit the full year axis across the viewport width — this is the *only*
+      // thing that sets the timeline zoom level on first paint.
+      const fitK = clamp((dimensions.width - 2 * HPAD) / hSpan, 0.3, 2.5);
+      // While tracking, preserve whatever zoom the user has dialled in (wheel /
+      // pinch / buttons); only the initial fit forces fitK.
+      const k = fittedRef.current ? transformRef.current.k : fitK;
 
-      svg.call(zoomRef.current.transform, d3.zoomIdentity.translate(tx, ty).scale(scale));
-      fittedRef.current = true;
-    } else if (yearScale && shouldTrack && zoomRef.current && renderNodes.length) {
-      // Auto-tracking camera: keep the current zoom level but pan so the growth
-      // front stays centered horizontally and the grown subtree stays centered
-      // vertically. Driven through the shared transition so it moves in lockstep
-      // with the nodes' vertical re-layout below.
-      const k = transformRef.current.k;
       const vYs = renderNodes.map(d => timelineY.get(d.data.id) ?? 0);
       const midV = (Math.min(...vYs) + Math.max(...vYs)) / 2;
-      const tx = dimensions.width / 2 - yearScale(currentYear) * k;
+
+      // X: keep the growth front centered, but clamp so we never scroll past the
+      // ends of the timeline — it pans like a video scrubber following a playhead.
+      let tx = dimensions.width / 2 - yearScale(currentYear) * k;
+      const leftBound  = HPAD - xRange[0] * k;                     // xMin pinned to left pad
+      const rightBound = (dimensions.width - HPAD) - xRange[1] * k; // xMax pinned to right pad
+      if (rightBound < leftBound) {
+        tx = clamp(tx, rightBound, leftBound);   // content wider than viewport → follow front within bounds
+      } else {
+        tx = (leftBound + rightBound) / 2;        // content narrower → just center it
+      }
+
+      // Y: center the grown subtree's vertical midpoint; the axis overflows and
+      // is freely pannable.
       const ty = dimensions.height / 2 - midV * k;
-      svg.transition(trans).call(zoomRef.current.transform, d3.zoomIdentity.translate(tx, ty).scale(k));
+
+      const target = d3.zoomIdentity.translate(tx, ty).scale(k);
+      if (!fittedRef.current) {
+        svg.call(zoomRef.current.transform, target);
+        fittedRef.current = true;
+      } else if (shouldTrack) {
+        // Shared transition → camera pan moves in lockstep with the node re-layout.
+        svg.transition(trans).call(zoomRef.current.transform, target);
+      } else {
+        g.attr('transform', transformRef.current);
+      }
+    } else if (!yearScale && !fittedRef.current && zoomRef.current && renderNodes.length) {
+      const xs = renderNodes.map(d => d.x);
+      const ys = renderNodes.map(d => d.y);
+      const minX = Math.min(...xs), maxX = Math.max(...xs);
+      const minY = Math.min(...ys), maxY = Math.max(...ys);
+      const scale = Math.min(0.9, Math.min(
+        dimensions.width  / ((maxY - minY) + 400),
+        dimensions.height / ((maxX - minX) + 80)
+      ));
+      const tx = 120;
+      const ty = dimensions.height / 2 - ((minX + maxX) / 2) * scale;
+      svg.call(zoomRef.current.transform, d3.zoomIdentity.translate(tx, ty).scale(scale));
+      fittedRef.current = true;
     } else {
       g.attr('transform', transformRef.current);
     }
