@@ -108,6 +108,7 @@ function isAncestor(node: d3.HierarchyPointNode<Language>, selectedId?: string):
 export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId, fontSize = 11, viewMode = 'tree', currentYear = TIMELINE_MAX_YEAR, onYearChange }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
   const gRef = useRef<d3.Selection<SVGGElement, unknown, null, undefined> | null>(null);
   const zoomRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null);
   const transformRef = useRef<d3.ZoomTransform>(d3.zoomIdentity);
@@ -669,20 +670,34 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
               </span>
             </div>
 
-            {/* Range input — track width = 100% of this container which equals
-                the SVG axis span (yearScale.range()) at the default fit zoom. */}
-            <input
-              type="range"
-              min={TIMELINE_MIN_YEAR}
-              max={TIMELINE_MAX_YEAR}
-              step={25}
-              value={currentYear ?? TIMELINE_MAX_YEAR}
-              className="w-full accent-gold cursor-pointer"
-              aria-label="Scrub through time to grow the language tree"
-              onPointerDown={() => { scrubbingRef.current = true; }}
+            {/* Custom div slider — thumb is centered on yearPct() exactly,
+                matching the SVG yearScale at the locked fit zoom. Native range
+                inputs have internal browser padding that offsets the thumb by
+                ~thumbRadius at the extremes, breaking pixel alignment. */}
+            <div
+              ref={trackRef}
+              className="relative h-1 bg-neutral-800 rounded-full cursor-pointer my-2"
+              onPointerDown={(e) => {
+                scrubbingRef.current = true;
+                e.currentTarget.setPointerCapture(e.pointerId);
+                if (!trackRef.current || !onYearChange) return;
+                const rect = trackRef.current.getBoundingClientRect();
+                const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+                onYearChange(Math.round(TIMELINE_MIN_YEAR + pct * (TIMELINE_MAX_YEAR - TIMELINE_MIN_YEAR)));
+              }}
+              onPointerMove={(e) => {
+                if (!scrubbingRef.current || !trackRef.current || !onYearChange) return;
+                const rect = trackRef.current.getBoundingClientRect();
+                const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+                onYearChange(Math.round(TIMELINE_MIN_YEAR + pct * (TIMELINE_MAX_YEAR - TIMELINE_MIN_YEAR)));
+              }}
               onPointerUp={() => { scrubbingRef.current = false; }}
-              onChange={e => onYearChange(Number(e.target.value))}
-            />
+            >
+              <div
+                className="absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-amber-500 pointer-events-none"
+                style={{ left: `calc(${yearPct(currentYear ?? TIMELINE_MAX_YEAR)}% - 8px)` }}
+              />
+            </div>
 
             {/* Tick labels — positioned by yearPct() so they match the range
                 input thumb position for each year. */}
