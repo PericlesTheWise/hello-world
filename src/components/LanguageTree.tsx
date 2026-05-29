@@ -10,7 +10,13 @@ interface Props {
   fontSize?: number;
   viewMode?: 'tree' | 'timeline';
   currentYear?: number;
+  onYearChange?: (year: number) => void;
 }
+
+// Horizontal padding (px) from the SVG container edge to the year-axis endpoints
+// at the default fit zoom. The HTML scrubber uses these same values so its track
+// sits exactly on top of the SVG axis at default zoom.
+const AXIS_HPAD = 60;
 
 const VIRTUAL_ROOT_ID = '__world_root__';
 const TRANSITION_MS = 280;
@@ -99,7 +105,7 @@ function isAncestor(node: d3.HierarchyPointNode<Language>, selectedId?: string):
   return false;
 }
 
-export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId, fontSize = 11, viewMode = 'tree', currentYear = TIMELINE_MAX_YEAR }) => {
+export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId, fontSize = 11, viewMode = 'tree', currentYear = TIMELINE_MAX_YEAR, onYearChange }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const gRef = useRef<d3.Selection<SVGGElement, unknown, null, undefined> | null>(null);
@@ -111,6 +117,10 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
   // re-armed as soon as the timeline scrubber (currentYear) moves again.
   const autoTrackPausedRef = useRef(false);
   const prevYearRef = useRef(currentYear);
+  // True while the user is actively dragging the scrubber thumb. Used to suppress
+  // D3 transitions so the camera and nodes update instantly instead of stacking up
+  // dozens of 280ms eases (which causes violent jitter during fast scrubbing).
+  const scrubbingRef = useRef(false);
 
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   // Bumped by the "Reset View" control to force a re-fit through the layout effect.
@@ -337,7 +347,10 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
 
     // Single shared transition instance — the camera pan and the node vertical
     // re-layout are scheduled on it together so the diagonal motion is cohesive.
-    const trans = d3.transition().duration(TRANSITION_MS).ease(d3.easeQuadInOut);
+    // Duration drops to 0 while the user is dragging the scrubber to prevent
+    // dozens of stacked 280ms eases from shaking the canvas.
+    const transDur = scrubbingRef.current ? 0 : TRANSITION_MS;
+    const trans = d3.transition().duration(transDur).ease(d3.easeQuadInOut);
 
     // ── Camera ─────────────────────────────────────────────────────────────────
     // Timeline mode and tree mode have fundamentally different fit strategies.
@@ -414,46 +427,26 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
     const isExp   = (d: d3.HierarchyPointNode<Language>) => expandedIds.has(d.data.id);
     const r       = (d: d3.HierarchyPointNode<Language>) => isSel(d) ? 9 : isRoot(d) ? 7 : hasCh(d) ? 6 : 4;
 
-    // ── Timeline axis ─────────────────────────────────────────────────────────
-    g.selectAll<SVGGElement, unknown>('g.timeline-axis').remove();
+    // ── Growth-front vertical marker ──────────────────────────────────────────
+    // Rendered inside the zoom group so it stays pixel-aligned with the nodes
+    // as the user pans/zooms. The tick-labelled axis lives in HTML (see JSX)
+    // so it can be positioned to align with the scrubber track without fighting
+    // the zoom transform.
+    g.selectAll<SVGGElement, unknown>('g.growth-front').remove();
     if (yearScale) {
-      const grownSlots = renderNodes.map(n => timelineY.get(n.data.id) ?? 0);
-      const axisMaxX = grownSlots.length ? Math.max(...grownSlots) : 0;
-      const axisLineY = axisMaxX + 50;
-
-      const axisG = g.append('g').attr('class', 'timeline-axis');
-      const tickYears = [-5000, -4000, -3000, -2000, -1000, 0, 500, 1000, 1500, 2000];
-
-      axisG.append('line')
-        .attr('x1', yearScale(-5000)).attr('x2', yearScale(2100))
-        .attr('y1', axisLineY).attr('y2', axisLineY)
-        .attr('stroke', 'rgba(197,160,89,0.25)').attr('stroke-width', 1);
-
-      for (const yr of tickYears) {
-        const px = yearScale(yr);
-        axisG.append('line')
-          .attr('x1', px).attr('x2', px)
-          .attr('y1', axisLineY - 4).attr('y2', axisLineY + 4)
-          .attr('stroke', 'rgba(197,160,89,0.4)').attr('stroke-width', 1);
-        axisG.append('text')
-          .attr('x', px).attr('y', axisLineY + 16)
-          .attr('text-anchor', 'middle')
-          .style('font-size', '9px').style('font-family', 'monospace')
-          .style('fill', 'rgba(197,160,89,0.5)')
-          .text(yr < 0 ? `${Math.abs(yr)} BCE` : yr === 0 ? '0 CE' : `${yr} CE`);
-      }
-
-      // Growth front — vertical marker at the scrubber's current year. Rendered
-      // inside the zoom group so it stays pixel-aligned with the nodes.
+      const allSlots = allNodes.map(n => timelineY.get(n.data.id) ?? 0);
       const frontX = yearScale(currentYear);
-      const frontTop = (grownSlots.length ? Math.min(...grownSlots) : 0) - 30;
-      axisG.append('line')
+      const frontTop = (allSlots.length ? Math.min(...allSlots) : 0) - 40;
+      const frontBot = (allSlots.length ? Math.max(...allSlots) : 0) + 60;
+
+      const frontG = g.append('g').attr('class', 'growth-front');
+      frontG.append('line')
         .attr('x1', frontX).attr('x2', frontX)
-        .attr('y1', frontTop).attr('y2', axisLineY)
+        .attr('y1', frontTop).attr('y2', frontBot)
         .attr('stroke', 'rgba(197,160,89,0.10)').attr('stroke-width', 10);
-      axisG.append('line')
+      frontG.append('line')
         .attr('x1', frontX).attr('x2', frontX)
-        .attr('y1', frontTop).attr('y2', axisLineY)
+        .attr('y1', frontTop).attr('y2', frontBot)
         .attr('stroke', 'rgba(197,160,89,0.55)').attr('stroke-width', 1.5);
     }
 
@@ -575,33 +568,29 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
       .style('opacity', d => isSel(d) ? 1 : 0.85);
   }, [visibleLanguages, expandedIds, dimensions, selectedId, fontSize, childrenMap, viewMode, currentYear, fitNonce]);
 
+  // Tick years for the HTML axis overlay — same set as was in the SVG axis.
+  const TICK_YEARS = [-5000, -4000, -3000, -2000, -1000, 0, 500, 1000, 1500, 2000];
+  const yearPct = (yr: number) =>
+    ((yr - TIMELINE_MIN_YEAR) / (TIMELINE_MAX_YEAR - TIMELINE_MIN_YEAR)) * 100;
+
   return (
     <div ref={containerRef} className="w-full h-full relative overflow-hidden" style={{ background: '#0a0a0a' }}>
       <svg ref={svgRef} className="w-full h-full" />
 
       {/* Floating zoom controls */}
       <div className="absolute top-4 right-4 flex flex-col gap-px bg-onyx/80 backdrop-blur-sm border border-gold/20 rounded-sm overflow-hidden">
-        <button
-          onClick={handleZoomIn}
-          title="Zoom in"
-          className="p-2 text-gold/60 hover:text-gold hover:bg-white/5 transition-colors"
-        >
+        <button onClick={handleZoomIn} title="Zoom in"
+          className="p-2 text-gold/60 hover:text-gold hover:bg-white/5 transition-colors">
           <Plus className="w-4 h-4" />
         </button>
         <div className="h-px bg-gold/15" />
-        <button
-          onClick={handleZoomOut}
-          title="Zoom out"
-          className="p-2 text-gold/60 hover:text-gold hover:bg-white/5 transition-colors"
-        >
+        <button onClick={handleZoomOut} title="Zoom out"
+          className="p-2 text-gold/60 hover:text-gold hover:bg-white/5 transition-colors">
           <Minus className="w-4 h-4" />
         </button>
         <div className="h-px bg-gold/15" />
-        <button
-          onClick={handleResetView}
-          title="Reset view"
-          className="p-2 text-gold/60 hover:text-gold hover:bg-white/5 transition-colors"
-        >
+        <button onClick={handleResetView} title="Reset view"
+          className="p-2 text-gold/60 hover:text-gold hover:bg-white/5 transition-colors">
           <RotateCcw className="w-4 h-4" />
         </button>
       </div>
@@ -611,9 +600,64 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
           Accessing Genealogical Records…
         </div>
       )}
+
+      {/* ── Unified HTML axis + scrubber overlay ────────────────────────────────
+           Positioned with AXIS_HPAD on each side so its track sits exactly on
+           top of where the SVG yearScale axis renders at the default fit zoom.
+           Transparent background so the growing tree shows through. ───────── */}
+      {viewMode === 'timeline' && onYearChange && (
+        <div
+          className="absolute bottom-6 hidden md:block pointer-events-none"
+          style={{ left: AXIS_HPAD, right: AXIS_HPAD }}
+        >
+          <div className="pointer-events-auto px-4 py-3 bg-[#050505]/70 backdrop-blur-sm rounded-xl border border-gold/15">
+            {/* Header row */}
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[10px] uppercase tracking-[0.25em] text-gold/50 font-mono">
+                Temporal Scrubber
+              </span>
+              <span className="text-[11px] font-mono text-gold tabular-nums">
+                {(currentYear ?? TIMELINE_MAX_YEAR) < 0
+                  ? `${Math.abs(currentYear ?? TIMELINE_MAX_YEAR).toLocaleString()} BCE`
+                  : `${currentYear ?? TIMELINE_MAX_YEAR} CE`}
+              </span>
+            </div>
+
+            {/* Range input — track width = 100% of this container which equals
+                the SVG axis span (yearScale.range()) at the default fit zoom. */}
+            <input
+              type="range"
+              min={TIMELINE_MIN_YEAR}
+              max={TIMELINE_MAX_YEAR}
+              step={25}
+              value={currentYear ?? TIMELINE_MAX_YEAR}
+              className="w-full accent-gold cursor-pointer"
+              aria-label="Scrub through time to grow the language tree"
+              onPointerDown={() => { scrubbingRef.current = true; }}
+              onPointerUp={() => { scrubbingRef.current = false; }}
+              onChange={e => onYearChange(Number(e.target.value))}
+            />
+
+            {/* Tick labels — positioned by yearPct() so they match the range
+                input thumb position for each year. */}
+            <div className="relative h-4 mt-0.5">
+              {TICK_YEARS.map(yr => (
+                <span
+                  key={yr}
+                  className="absolute -translate-x-1/2 text-[9px] uppercase tracking-[0.2em] font-mono text-gold/30"
+                  style={{ left: `${yearPct(yr)}%` }}
+                >
+                  {yr < 0 ? `${Math.abs(yr)} BCE` : yr === 0 ? '0' : `${yr}`}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="absolute bottom-4 right-4 text-[9px] text-gold/30 font-mono uppercase tracking-widest">
         {viewMode === 'timeline'
-          ? 'Scroll / pinch to zoom · Drag to pan · Scrubber auto-tracks growth'
+          ? 'Scroll / pinch to zoom · Drag to pan · Scrubber tracks growth front'
           : 'Scroll / pinch to zoom · Drag to pan · Click node to expand / collapse'}
       </div>
     </div>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { LanguageTree, TIMELINE_MIN_YEAR, TIMELINE_MAX_YEAR } from './components/LanguageTree';
+import { LanguageTree, TIMELINE_MAX_YEAR } from './components/LanguageTree';
 import { LanguageDetail } from './components/LanguageDetail';
 import { Language } from './types';
 import { getLanguages } from './services/languageService';
@@ -229,36 +229,12 @@ export default function App() {
               fontSize={fontSize}
               viewMode={viewMode}
               currentYear={currentYear}
+              onYearChange={setCurrentYear}
             />
           </div>
 
-          {/* Temporal scrubber — Timeline View only; drives the "roots growing" filter */}
-          {viewMode === 'timeline' && (
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-3/4 px-8 py-4 bg-[#050505]/80 backdrop-blur-sm rounded-2xl border border-gold/15 hidden md:block">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] uppercase tracking-[0.25em] text-gold/50 font-mono">Temporal Scrubber</span>
-              <span className="text-[11px] font-mono text-gold tabular-nums">
-                {currentYear < 0 ? `${Math.abs(currentYear).toLocaleString()} BCE` : `${currentYear} CE`}
-              </span>
-            </div>
-            <input
-              type="range"
-              min={TIMELINE_MIN_YEAR}
-              max={TIMELINE_MAX_YEAR}
-              step={25}
-              value={currentYear}
-              onChange={e => setCurrentYear(Number(e.target.value))}
-              className="w-full accent-gold cursor-pointer"
-              aria-label="Scrub through time to grow the language tree"
-            />
-            <div className="flex justify-between text-[9px] uppercase tracking-[0.25em] text-gold/30 mb-0 mt-1 font-mono">
-              <span>5000 BCE</span>
-              <span>2000 BCE</span>
-              <span>0 CE</span>
-              <span className="text-gold/60 font-bold">Present</span>
-            </div>
-          </div>
-          )}
+          {/* Scrubber is now rendered inside LanguageTree so it can align with
+              the SVG year axis. No scrubber panel here. */}
         </main>
 
         {/* Detail Panel */}
