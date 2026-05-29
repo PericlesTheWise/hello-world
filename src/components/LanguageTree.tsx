@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import * as d3 from 'd3';
+import { Plus, Minus, RotateCcw } from 'lucide-react';
 import { Language } from '../types';
 
 interface Props {
@@ -106,7 +107,14 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
   const transformRef = useRef<d3.ZoomTransform>(d3.zoomIdentity);
   const fittedRef = useRef(false);
 
+  // Auto-tracking camera state. Paused the moment the user manually pans/zooms;
+  // re-armed as soon as the timeline scrubber (currentYear) moves again.
+  const autoTrackPausedRef = useRef(false);
+  const prevYearRef = useRef(currentYear);
+
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+  // Bumped by the "Reset View" control to force a re-fit through the layout effect.
+  const [fitNonce, setFitNonce] = useState(0);
   const childrenMap = useMemo(() => buildChildrenMap(languages), [languages]);
 
   const [expandedIds, setExpandedIds] = useState<Set<string>>(
@@ -151,6 +159,23 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
   const handleNodeClickRef = useRef(handleNodeClick);
   useEffect(() => { handleNodeClickRef.current = handleNodeClick; }, [handleNodeClick]);
 
+  // ── Floating zoom controls ─────────────────────────────────────────────────
+  const handleZoomIn = useCallback(() => {
+    if (!svgRef.current || !zoomRef.current) return;
+    d3.select(svgRef.current).transition().duration(200).call(zoomRef.current.scaleBy, 1.3);
+  }, []);
+
+  const handleZoomOut = useCallback(() => {
+    if (!svgRef.current || !zoomRef.current) return;
+    d3.select(svgRef.current).transition().duration(200).call(zoomRef.current.scaleBy, 1 / 1.3);
+  }, []);
+
+  const handleResetView = useCallback(() => {
+    fittedRef.current = false;
+    autoTrackPausedRef.current = false;
+    setFitNonce(n => n + 1);
+  }, []);
+
   useEffect(() => {
     if (!containerRef.current) return;
     const obs = new ResizeObserver(entries => {
@@ -164,6 +189,16 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
 
   useEffect(() => {
     if (!svgRef.current || dimensions.width === 0 || visibleLanguages.length === 0) return;
+
+    // ── Auto-track arming ──────────────────────────────────────────────────────
+    // A change in currentYear means the user moved the scrubber, so re-arm the
+    // tracking camera (the only thing that pauses it is a manual pan/zoom).
+    const yearChanged = currentYear !== prevYearRef.current;
+    if (yearChanged) {
+      autoTrackPausedRef.current = false;
+      prevYearRef.current = currentYear;
+    }
+    const shouldTrack = viewMode === 'timeline' && !autoTrackPausedRef.current;
 
     // ── Layout ────────────────────────────────────────────────────────────────
     const virtualRoot: Language = { id: VIRTUAL_ROOT_ID, name: 'World Languages', parentLanguageId: null, family: 'Root' };
@@ -195,10 +230,32 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
       ? d3.scaleLinear().domain([TIMELINE_MIN_YEAR, TIMELINE_MAX_YEAR]).range([80, dimensions.width - 200]).clamp(true)
       : null;
 
-    // DFS leaf-ordering: assign each visible leaf a sequential y slot, then
-    // place each internal node at the midpoint of its outermost leaf descendants.
-    // Every subtree occupies a contiguous, non-overlapping y-range, so elbow
-    // links from different subtrees are provably crossing-free.
+    // ── Growth filter (timeline scrubber) ─────────────────────────────────────
+    // A node has "grown" once currentYear reaches its earliest appearance year,
+    // and only if its parent has already grown — walking top-down keeps ancestry
+    // intact and guarantees links are only ever drawn between two grown nodes
+    // (no branch lines dangling toward not-yet-appeared children).
+    const grownSet = new Set<string>();
+    if (yearScale) {
+      const walk = (node: d3.HierarchyPointNode<Language>) => {
+        for (const child of node.children ?? []) {
+          const yr = parseEarliestYear(child.data.approxDate);
+          const appearsAt = yr == null ? -Infinity : yr;
+          if (appearsAt <= currentYear) {
+            grownSet.add(child.data.id);
+            walk(child);
+          }
+        }
+      };
+      walk(root);
+    }
+    const renderNodes = yearScale ? allNodes.filter(d => grownSet.has(d.data.id)) : allNodes;
+
+    // DFS leaf-ordering over ONLY the grown nodes: assign each grown leaf a
+    // sequential y slot, then place each internal node at the midpoint of its
+    // grown leaf descendants. Because the slot count tracks the visible front,
+    // vertical spacing compresses to the currently-grown subtree and re-expands
+    // (animated) as new branches sprout in — no dead gaps for hidden children.
     const timelineY = new Map<string, number>();
     if (yearScale) {
       const LEAF_SPACING = 34;
@@ -206,14 +263,17 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
       const MIN_GAP = LEAF_SPACING / 3;
       let leafIdx = 0;
 
+      const grownKids = (node: d3.HierarchyPointNode<Language>) =>
+        (node.children ?? []).filter(c => grownSet.has(c.data.id));
+
       function assignY(node: d3.HierarchyPointNode<Language>): void {
-        const kids = node.children ?? [];
         if (node.data.id === VIRTUAL_ROOT_ID) {
-          kids.forEach(c => assignY(c));
+          grownKids(node).forEach(c => assignY(c));
           return;
         }
+        const kids = grownKids(node);
         if (kids.length === 0) {
-          // Leaf: take the next sequential slot.
+          // Grown leaf (so far): take the next sequential slot.
           timelineY.set(node.data.id, leafIdx * LEAF_SPACING);
           leafIdx++;
           return;
@@ -250,52 +310,50 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
     const svg = d3.select(svgRef.current);
 
     if (!gRef.current) {
+      // Full-size invisible hit-target so wheel/pinch zoom never stutters when
+      // the pointer is over a line or label. Sits beneath the tree group.
+      svg.append('rect').attr('class', 'zoom-bg').attr('x', 0).attr('y', 0)
+        .attr('fill', 'transparent').style('pointer-events', 'all');
       gRef.current = svg.append('g').attr('class', 'tree-root');
       zoomRef.current = d3.zoom<SVGSVGElement, unknown>()
         .scaleExtent([0.05, 3])
         .on('zoom', event => {
           transformRef.current = event.transform;
           gRef.current?.attr('transform', event.transform);
+          // sourceEvent is set only for genuine user gestures (drag/wheel/pinch);
+          // programmatic transitions leave it null. A real gesture pauses tracking.
+          if (event.sourceEvent) autoTrackPausedRef.current = true;
         });
       svg.call(zoomRef.current);
-    } else {
-      if (zoomRef.current) svg.call(zoomRef.current);
     }
 
-    // ── Wheel behaviour: horizontal scroll in timeline, zoom in tree ──────────
-    if (viewMode === 'timeline' && zoomRef.current) {
-      // Block D3 zoom from consuming wheel events so our handler can drive panning.
-      zoomRef.current.filter(event => event.type !== 'wheel' && !event.button);
-      svg.on('wheel.hscroll', (event: WheelEvent) => {
-        event.preventDefault();
-        // Use whichever axis has more movement (supports both trackpad swipe and scroll wheel).
-        const delta = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY;
-        const cur = transformRef.current;
-        const next = d3.zoomIdentity.translate(cur.x - delta * 0.8, cur.y).scale(cur.k);
-        if (zoomRef.current) svg.call(zoomRef.current.transform, next);
-      }, { passive: false } as AddEventListenerOptions);
-    } else if (zoomRef.current) {
-      zoomRef.current.filter(event => !event.button);
-      svg.on('wheel.hscroll', null);
-    }
+    // Keep the zoom hit-target covering the whole viewport (default d3 zoom
+    // filter already handles wheel zoom and ctrl-wheel trackpad pinch).
+    svg.select<SVGRectElement>('rect.zoom-bg')
+      .attr('width', dimensions.width)
+      .attr('height', dimensions.height);
 
     const g = gRef.current;
 
-    // ── Fit to view — only on first data render (or mode change) ─────────────
-    if (!fittedRef.current && zoomRef.current) {
-      const all = root.descendants().filter(d => d.data.id !== VIRTUAL_ROOT_ID);
+    // Single shared transition instance — the camera pan and the node vertical
+    // re-layout are scheduled on it together so the diagonal motion is cohesive.
+    const trans = d3.transition().duration(TRANSITION_MS).ease(d3.easeQuadInOut);
+
+    // ── Camera: fit on first render, else auto-track the growth front ──────────
+    if (!fittedRef.current && zoomRef.current && renderNodes.length) {
       let tx: number, ty: number, scale: number;
 
       if (viewMode === 'timeline') {
-        const yVals = all.map(d => timelineY.get(d.data.id) ?? 0);
+        const yVals = renderNodes.map(d => timelineY.get(d.data.id) ?? 0);
         const minBX = Math.min(...yVals);
         const maxBX = Math.max(...yVals);
         scale = Math.min(0.9, dimensions.height / ((maxBX - minBX) + 120));
-        tx = 0;
+        // Center the growth front horizontally right from the first paint.
+        tx = dimensions.width / 2 - yearScale!(currentYear) * scale;
         ty = dimensions.height / 2 - ((minBX + maxBX) / 2) * scale;
       } else {
-        const xs = all.map(d => d.x);
-        const ys = all.map(d => d.y);
+        const xs = renderNodes.map(d => d.x);
+        const ys = renderNodes.map(d => d.y);
         const minX = Math.min(...xs), maxX = Math.max(...xs);
         const minY = Math.min(...ys), maxY = Math.max(...ys);
         scale = Math.min(0.9, Math.min(
@@ -308,11 +366,20 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
 
       svg.call(zoomRef.current.transform, d3.zoomIdentity.translate(tx, ty).scale(scale));
       fittedRef.current = true;
+    } else if (yearScale && shouldTrack && zoomRef.current && renderNodes.length) {
+      // Auto-tracking camera: keep the current zoom level but pan so the growth
+      // front stays centered horizontally and the grown subtree stays centered
+      // vertically. Driven through the shared transition so it moves in lockstep
+      // with the nodes' vertical re-layout below.
+      const k = transformRef.current.k;
+      const vYs = renderNodes.map(d => timelineY.get(d.data.id) ?? 0);
+      const midV = (Math.min(...vYs) + Math.max(...vYs)) / 2;
+      const tx = dimensions.width / 2 - yearScale(currentYear) * k;
+      const ty = dimensions.height / 2 - midV * k;
+      svg.transition(trans).call(zoomRef.current.transform, d3.zoomIdentity.translate(tx, ty).scale(k));
     } else {
       g.attr('transform', transformRef.current);
     }
-
-    const trans = d3.transition().duration(TRANSITION_MS).ease(d3.easeQuadInOut);
 
     // ── Helpers ───────────────────────────────────────────────────────────────
     const isSel   = (d: d3.HierarchyPointNode<Language>) => d.data.id === selectedId;
@@ -324,7 +391,8 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
     // ── Timeline axis ─────────────────────────────────────────────────────────
     g.selectAll<SVGGElement, unknown>('g.timeline-axis').remove();
     if (yearScale) {
-      const axisMaxX = allNodes.reduce((acc, node) => Math.max(acc, timelineY.get(node.data.id) ?? 0), -Infinity);
+      const grownSlots = renderNodes.map(n => timelineY.get(n.data.id) ?? 0);
+      const axisMaxX = grownSlots.length ? Math.max(...grownSlots) : 0;
       const axisLineY = axisMaxX + 50;
 
       const axisG = g.append('g').attr('class', 'timeline-axis');
@@ -352,8 +420,7 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
       // Growth front — vertical marker at the scrubber's current year. Rendered
       // inside the zoom group so it stays pixel-aligned with the nodes.
       const frontX = yearScale(currentYear);
-      const slotVals = allNodes.map(n => timelineY.get(n.data.id) ?? 0);
-      const frontTop = Math.min(...slotVals) - 30;
+      const frontTop = (grownSlots.length ? Math.min(...grownSlots) : 0) - 30;
       axisG.append('line')
         .attr('x1', frontX).attr('x2', frontX)
         .attr('y1', frontTop).attr('y2', axisLineY)
@@ -363,27 +430,6 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
         .attr('y1', frontTop).attr('y2', axisLineY)
         .attr('stroke', 'rgba(197,160,89,0.55)').attr('stroke-width', 1.5);
     }
-
-    // ── Growth filter (timeline scrubber) ─────────────────────────────────────
-    // A node has "grown" once currentYear reaches its earliest appearance year,
-    // and only if its parent has already grown — walking top-down keeps ancestry
-    // intact and guarantees links are only ever drawn between two grown nodes
-    // (no branch lines dangling toward not-yet-appeared children).
-    const grownSet = new Set<string>();
-    if (yearScale) {
-      const walk = (node: d3.HierarchyPointNode<Language>) => {
-        for (const child of node.children ?? []) {
-          const yr = parseEarliestYear(child.data.approxDate);
-          const appearsAt = yr == null ? -Infinity : yr;
-          if (appearsAt <= currentYear) {
-            grownSet.add(child.data.id);
-            walk(child);
-          }
-        }
-      };
-      walk(root);
-    }
-    const renderNodes = yearScale ? allNodes.filter(d => grownSet.has(d.data.id)) : allNodes;
 
     // ── Links — enter / update / exit ─────────────────────────────────────────
     const linkPathFn = (d: d3.HierarchyPointLink<Language>) => {
@@ -501,15 +547,39 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
     applyLabel(nodeAll.select<SVGTextElement>('.lbl-fg'))
       .style('fill', d => isSel(d) ? '#c5a059' : isRoot(d) ? '#d4bc8a' : '#e0d8cc')
       .style('opacity', d => isSel(d) ? 1 : 0.85);
-
-    return () => {
-      if (svgRef.current) d3.select(svgRef.current).on('wheel.hscroll', null);
-    };
-  }, [visibleLanguages, expandedIds, dimensions, selectedId, fontSize, childrenMap, viewMode, currentYear]);
+  }, [visibleLanguages, expandedIds, dimensions, selectedId, fontSize, childrenMap, viewMode, currentYear, fitNonce]);
 
   return (
     <div ref={containerRef} className="w-full h-full relative overflow-hidden" style={{ background: '#0a0a0a' }}>
       <svg ref={svgRef} className="w-full h-full" />
+
+      {/* Floating zoom controls */}
+      <div className="absolute top-4 right-4 flex flex-col gap-px bg-onyx/80 backdrop-blur-sm border border-gold/20 rounded-sm overflow-hidden">
+        <button
+          onClick={handleZoomIn}
+          title="Zoom in"
+          className="p-2 text-gold/60 hover:text-gold hover:bg-white/5 transition-colors"
+        >
+          <Plus className="w-4 h-4" />
+        </button>
+        <div className="h-px bg-gold/15" />
+        <button
+          onClick={handleZoomOut}
+          title="Zoom out"
+          className="p-2 text-gold/60 hover:text-gold hover:bg-white/5 transition-colors"
+        >
+          <Minus className="w-4 h-4" />
+        </button>
+        <div className="h-px bg-gold/15" />
+        <button
+          onClick={handleResetView}
+          title="Reset view"
+          className="p-2 text-gold/60 hover:text-gold hover:bg-white/5 transition-colors"
+        >
+          <RotateCcw className="w-4 h-4" />
+        </button>
+      </div>
+
       {visibleLanguages.length === 0 && (
         <div className="absolute inset-0 flex items-center justify-center text-gold/40 uppercase tracking-[0.3em] font-mono text-xs">
           Accessing Genealogical Records…
@@ -517,8 +587,8 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
       )}
       <div className="absolute bottom-4 right-4 text-[9px] text-gold/30 font-mono uppercase tracking-widest">
         {viewMode === 'timeline'
-          ? 'Scroll to pan · Drag to pan · Click node to expand / collapse'
-          : 'Scroll to zoom · Drag to pan · Click node to expand / collapse'}
+          ? 'Scroll / pinch to zoom · Drag to pan · Scrubber auto-tracks growth'
+          : 'Scroll / pinch to zoom · Drag to pan · Click node to expand / collapse'}
       </div>
     </div>
   );
