@@ -116,11 +116,20 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
   // Auto-tracking camera state. Paused the moment the user manually pans/zooms;
   // re-armed as soon as the timeline scrubber (currentYear) moves again.
   const autoTrackPausedRef = useRef(false);
-  const prevYearRef = useRef(currentYear);
   // True while the user is actively dragging the scrubber thumb. Used to suppress
   // D3 transitions so the camera and nodes update instantly instead of stacking up
   // dozens of 280ms eases (which causes violent jitter during fast scrubbing).
   const scrubbingRef = useRef(false);
+  // Current view mode, read inside the (once-installed) D3 zoom filter/constrain
+  // closures so they can branch without being re-installed every render.
+  const modeRef = useRef(viewMode);
+  // Locked horizontal transform for timeline mode. The X axis never moves — only
+  // ty is free — so the time axis stays pinned under vertical scrolling and stays
+  // aligned with the HTML scrubber track.
+  const lockedKRef = useRef(1);
+  const lockedTxRef = useRef(0);
+  // Allowed vertical translate range (screen px) for clamping timeline scroll.
+  const tyBoundsRef = useRef<{ min: number; max: number }>({ min: 0, max: 0 });
 
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   // Bumped by the "Reset View" control to force a re-fit through the layout effect.
@@ -200,16 +209,6 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
   useEffect(() => {
     if (!svgRef.current || dimensions.width === 0 || visibleLanguages.length === 0) return;
 
-    // ── Auto-track arming ──────────────────────────────────────────────────────
-    // A change in currentYear means the user moved the scrubber, so re-arm the
-    // tracking camera (the only thing that pauses it is a manual pan/zoom).
-    const yearChanged = currentYear !== prevYearRef.current;
-    if (yearChanged) {
-      autoTrackPausedRef.current = false;
-      prevYearRef.current = currentYear;
-    }
-    const shouldTrack = viewMode === 'timeline' && !autoTrackPausedRef.current;
-
     // ── Layout ────────────────────────────────────────────────────────────────
     const virtualRoot: Language = { id: VIRTUAL_ROOT_ID, name: 'World Languages', parentLanguageId: null, family: 'Root' };
     const withVR = [virtualRoot, ...visibleLanguages.map(l => ({
@@ -240,6 +239,19 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
       ? d3.scaleLinear().domain([TIMELINE_MIN_YEAR, TIMELINE_MAX_YEAR]).range([80, dimensions.width - 200]).clamp(true)
       : null;
 
+    const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
+
+    // Locked horizontal zoom for the timeline. Chosen so the full yearScale range
+    // exactly fills the viewport between AXIS_HPAD margins (so it lines up with the
+    // HTML scrubber). This is the ONLY zoom the timeline ever uses on X — it never
+    // changes, which keeps the time axis perfectly stationary.
+    let timelineK = 1;
+    if (yearScale) {
+      const xr = yearScale.range();
+      const hSpan = Math.max(1, xr[1] - xr[0]);
+      timelineK = clamp((dimensions.width - 2 * AXIS_HPAD) / hSpan, 0.3, 2.5);
+    }
+
     // ── Growth filter (timeline scrubber) ─────────────────────────────────────
     // A node has "grown" once currentYear reaches its earliest appearance year,
     // and only if its parent has already grown — walking top-down keeps ancestry
@@ -268,9 +280,15 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
     // (animated) as new branches sprout in — no dead gaps for hidden children.
     const timelineY = new Map<string, number>();
     if (yearScale) {
-      const LEAF_SPACING = 34;
-      // Minimum visual gap between any two nodes (one-third of leaf spacing).
-      const MIN_GAP = LEAF_SPACING / 3;
+      // Hard vertical clearance floor: at least 26px on SCREEN between any two
+      // nodes. Layout coords are scaled by timelineK on screen, so divide the
+      // 26px target by timelineK to get the data-space floor. Leaf rows get a bit
+      // extra headroom; internal nodes are pushed to at least the 26px floor.
+      const SCREEN_FLOOR = 26;
+      const dataFloor = SCREEN_FLOOR / timelineK;
+      const LEAF_SPACING = Math.max(34, Math.ceil(dataFloor * 1.3));
+      // Minimum visual gap between any two nodes — the strict 26px screen floor.
+      const MIN_GAP = Math.ceil(dataFloor);
       let leafIdx = 0;
 
       const grownKids = (node: d3.HierarchyPointNode<Language>) =>
@@ -327,6 +345,25 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
       gRef.current = svg.append('g').attr('class', 'tree-root');
       zoomRef.current = d3.zoom<SVGSVGElement, unknown>()
         .scaleExtent([0.05, 3])
+        .filter(event => {
+          // Timeline: wheel/trackpad is handled by our vertical-only scroll
+          // handler below, so block D3's native wheel-zoom. Drag still allowed.
+          if (modeRef.current === 'timeline' && event.type === 'wheel') return false;
+          return !event.button && (!event.ctrlKey || event.type === 'wheel');
+        })
+        .constrain((transform, extent, translateExtent) => {
+          // Timeline: lock X and scale to the fitted values so the time axis is
+          // completely stationary; only the vertical translate (ty) is free, and
+          // it is clamped to the content bounds. Tree mode is unconstrained.
+          if (modeRef.current === 'timeline') {
+            const b = tyBoundsRef.current;
+            const ty = Math.max(b.min, Math.min(b.max, transform.y));
+            return d3.zoomIdentity.translate(lockedTxRef.current, ty).scale(lockedKRef.current);
+          }
+          // Tree mode: no translateExtent is set, so the default behaviour is to
+          // leave the proposed transform unchanged (free pan + zoom).
+          return transform;
+        })
         .on('zoom', event => {
           transformRef.current = event.transform;
           gRef.current?.attr('transform', event.transform);
@@ -335,7 +372,22 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
           if (event.sourceEvent) autoTrackPausedRef.current = true;
         });
       svg.call(zoomRef.current);
+
+      // Vertical-only scroll for the timeline: wheel/trackpad updates ONLY ty,
+      // leaving the locked X axis untouched. The constrain() above clamps ty.
+      svg.on('wheel.vscroll', (event: WheelEvent) => {
+        if (modeRef.current !== 'timeline' || !zoomRef.current) return;
+        event.preventDefault();
+        const cur = transformRef.current;
+        const next = d3.zoomIdentity
+          .translate(lockedTxRef.current, cur.y - event.deltaY)
+          .scale(lockedKRef.current);
+        d3.select(svgRef.current!).call(zoomRef.current.transform, next);
+        autoTrackPausedRef.current = true;
+      }, { passive: false } as AddEventListenerOptions);
     }
+
+    modeRef.current = viewMode;
 
     // Keep the zoom hit-target covering the whole viewport (default d3 zoom
     // filter already handles wheel zoom and ctrl-wheel trackpad pinch).
@@ -353,56 +405,45 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
     const trans = d3.transition().duration(transDur).ease(d3.easeQuadInOut);
 
     // ── Camera ─────────────────────────────────────────────────────────────────
-    // Timeline mode and tree mode have fundamentally different fit strategies.
-    //
-    // The timeline maps X strictly to yearScale(year), whose range already spans
-    // (almost) the whole viewport width. The horizontal zoom is therefore chosen
-    // to make that year axis fill the width — NEVER to fit the vertical extent.
-    // (With 300+ leaves the vertical extent is ~10k px; fitting it would force a
-    // ~0.08 zoom that crushes the correctly-spaced timeline into a thin strip.)
-    // The tall vertical axis simply overflows and is panned; the camera centers
-    // the growth front on X and the grown subtree's midpoint on Y.
-    const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
-
+    // TIMELINE: the X axis is fully LOCKED. K and TX are constants chosen so the
+    // yearScale range fills the viewport between AXIS_HPAD margins, which makes
+    // the SVG axis line up exactly with the HTML scrubber track (left/right =
+    // AXIS_HPAD). Only ty is free — the user scrolls vertically via wheel/drag,
+    // and the camera here never pans on scrub (eliminating horizontal jitter).
     if (yearScale && zoomRef.current && renderNodes.length) {
-      const xRange = yearScale.range();            // [80, width - 200]
-      const hSpan = Math.max(1, xRange[1] - xRange[0]);
-      const HPAD = 60;
-      // Fit the full year axis across the viewport width — this is the *only*
-      // thing that sets the timeline zoom level on first paint.
-      const fitK = clamp((dimensions.width - 2 * HPAD) / hSpan, 0.3, 2.5);
-      // While tracking, preserve whatever zoom the user has dialled in (wheel /
-      // pinch / buttons); only the initial fit forces fitK.
-      const k = fittedRef.current ? transformRef.current.k : fitK;
+      const xRange = yearScale.range();              // [80, width - 200]
+      const K = timelineK;
+      const TX = AXIS_HPAD - xRange[0] * K;          // pins yearScale(MIN) → AXIS_HPAD on screen
+      lockedKRef.current = K;
+      lockedTxRef.current = TX;
 
-      const vYs = renderNodes.map(d => timelineY.get(d.data.id) ?? 0);
-      const midV = (Math.min(...vYs) + Math.max(...vYs)) / 2;
-
-      // X: keep the growth front centered, but clamp so we never scroll past the
-      // ends of the timeline — it pans like a video scrubber following a playhead.
-      let tx = dimensions.width / 2 - yearScale(currentYear) * k;
-      const leftBound  = HPAD - xRange[0] * k;                     // xMin pinned to left pad
-      const rightBound = (dimensions.width - HPAD) - xRange[1] * k; // xMax pinned to right pad
-      if (rightBound < leftBound) {
-        tx = clamp(tx, rightBound, leftBound);   // content wider than viewport → follow front within bounds
+      // Vertical content extent (screen px) and the resulting legal ty range.
+      const slots = renderNodes.map(d => timelineY.get(d.data.id) ?? 0);
+      const minS = Math.min(...slots) * K;
+      const maxS = Math.max(...slots) * K;
+      const M = 80; // top/bottom breathing room
+      let tyBounds: { min: number; max: number };
+      if (maxS - minS + 2 * M <= dimensions.height) {
+        // Content fits — pin it centered (no scroll).
+        const ty = dimensions.height / 2 - (minS + maxS) / 2;
+        tyBounds = { min: ty, max: ty };
       } else {
-        tx = (leftBound + rightBound) / 2;        // content narrower → just center it
+        tyBounds = {
+          min: (dimensions.height - M) - maxS, // scrolled to bottom
+          max: M - minS,                        // scrolled to top
+        };
       }
+      tyBoundsRef.current = tyBounds;
 
-      // Y: center the grown subtree's vertical midpoint; the axis overflows and
-      // is freely pannable.
-      const ty = dimensions.height / 2 - midV * k;
+      // First paint / reset: center the grown content. Otherwise preserve the
+      // user's current vertical scroll position.
+      let ty = fittedRef.current ? transformRef.current.y : dimensions.height / 2 - (minS + maxS) / 2;
+      ty = clamp(ty, tyBounds.min, tyBounds.max);
+      fittedRef.current = true;
 
-      const target = d3.zoomIdentity.translate(tx, ty).scale(k);
-      if (!fittedRef.current) {
-        svg.call(zoomRef.current.transform, target);
-        fittedRef.current = true;
-      } else if (shouldTrack) {
-        // Shared transition → camera pan moves in lockstep with the node re-layout.
-        svg.transition(trans).call(zoomRef.current.transform, target);
-      } else {
-        g.attr('transform', transformRef.current);
-      }
+      // Enforce the lock instantly — the camera does not animate on scrub; only
+      // the nodes re-layout. constrain() re-clamps ty for safety.
+      svg.call(zoomRef.current.transform, d3.zoomIdentity.translate(TX, ty).scale(K));
     } else if (!yearScale && !fittedRef.current && zoomRef.current && renderNodes.length) {
       const xs = renderNodes.map(d => d.x);
       const ys = renderNodes.map(d => d.y);
@@ -434,10 +475,10 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
     // the zoom transform.
     g.selectAll<SVGGElement, unknown>('g.growth-front').remove();
     if (yearScale) {
-      const allSlots = allNodes.map(n => timelineY.get(n.data.id) ?? 0);
+      const grownSlots = renderNodes.map(n => timelineY.get(n.data.id) ?? 0);
       const frontX = yearScale(currentYear);
-      const frontTop = (allSlots.length ? Math.min(...allSlots) : 0) - 40;
-      const frontBot = (allSlots.length ? Math.max(...allSlots) : 0) + 60;
+      const frontTop = (grownSlots.length ? Math.min(...grownSlots) : 0) - 40;
+      const frontBot = (grownSlots.length ? Math.max(...grownSlots) : 0) + 60;
 
       const frontG = g.append('g').attr('class', 'growth-front');
       frontG.append('line')
@@ -577,19 +618,24 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
     <div ref={containerRef} className="w-full h-full relative overflow-hidden" style={{ background: '#0a0a0a' }}>
       <svg ref={svgRef} className="w-full h-full" />
 
-      {/* Floating zoom controls */}
+      {/* Floating controls. Zoom +/- are hidden in timeline mode because the
+          horizontal axis is locked there; only Reset (re-center) is offered. */}
       <div className="absolute top-4 right-4 flex flex-col gap-px bg-onyx/80 backdrop-blur-sm border border-gold/20 rounded-sm overflow-hidden">
-        <button onClick={handleZoomIn} title="Zoom in"
-          className="p-2 text-gold/60 hover:text-gold hover:bg-white/5 transition-colors">
-          <Plus className="w-4 h-4" />
-        </button>
-        <div className="h-px bg-gold/15" />
-        <button onClick={handleZoomOut} title="Zoom out"
-          className="p-2 text-gold/60 hover:text-gold hover:bg-white/5 transition-colors">
-          <Minus className="w-4 h-4" />
-        </button>
-        <div className="h-px bg-gold/15" />
-        <button onClick={handleResetView} title="Reset view"
+        {viewMode !== 'timeline' && (
+          <>
+            <button onClick={handleZoomIn} title="Zoom in"
+              className="p-2 text-gold/60 hover:text-gold hover:bg-white/5 transition-colors">
+              <Plus className="w-4 h-4" />
+            </button>
+            <div className="h-px bg-gold/15" />
+            <button onClick={handleZoomOut} title="Zoom out"
+              className="p-2 text-gold/60 hover:text-gold hover:bg-white/5 transition-colors">
+              <Minus className="w-4 h-4" />
+            </button>
+            <div className="h-px bg-gold/15" />
+          </>
+        )}
+        <button onClick={handleResetView} title={viewMode === 'timeline' ? 'Re-center' : 'Reset view'}
           className="p-2 text-gold/60 hover:text-gold hover:bg-white/5 transition-colors">
           <RotateCcw className="w-4 h-4" />
         </button>
@@ -657,7 +703,7 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
 
       <div className="absolute bottom-4 right-4 text-[9px] text-gold/30 font-mono uppercase tracking-widest">
         {viewMode === 'timeline'
-          ? 'Scroll / pinch to zoom · Drag to pan · Scrubber tracks growth front'
+          ? 'Scroll / drag to pan vertically · Time axis locked · Scrub to grow'
           : 'Scroll / pinch to zoom · Drag to pan · Click node to expand / collapse'}
       </div>
     </div>
