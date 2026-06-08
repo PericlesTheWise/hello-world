@@ -494,6 +494,20 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
     const transDur = scrubbingRef.current ? 0 : TRANSITION_MS;
     const trans = d3.transition().duration(transDur).ease(d3.easeQuadInOut);
 
+    // While scrubbing, write attributes directly to the selection instead of
+    // scheduling a transition. At 1,800+ nodes (~3,500 elements with links),
+    // creating a transition + interpolators per element on every scrub tick is
+    // the dominant cost; direct writes keep the scrub at a steady frame rate.
+    // The cast is safe: only .attr/.style/.text/.remove are chained downstream,
+    // all of which exist on both Selection and Transition with the same runtime
+    // behaviour.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const animate = <GE extends d3.BaseType, Datum>(
+      sel: d3.Selection<GE, Datum, any, any>,
+    ): d3.Transition<GE, Datum, any, any> =>
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (scrubbingRef.current ? sel : sel.transition(trans)) as any;
+
     // ── Camera ─────────────────────────────────────────────────────────────────
     // TIMELINE: the X axis is fully LOCKED. K and TX are constants chosen so the
     // yearScale range fills the viewport between AXIS_HPAD margins, which makes
@@ -625,14 +639,13 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
     const linkSel  = g.selectAll<SVGPathElement, typeof linkData[0]>('path.link')
       .data(linkData, d => `${d.source.data.id}→${d.target.data.id}`);
 
-    linkSel.exit().transition(trans).style('opacity', 0).remove();
+    animate(linkSel.exit()).style('opacity', 0).remove();
 
     const linkEnter = linkSel.enter().append('path')
       .attr('class', 'link').attr('fill', 'none')
       .attr('d', linkPathFn).style('opacity', 0);
 
-    linkEnter.merge(linkSel)
-      .transition(trans)
+    animate<SVGPathElement, d3.HierarchyPointLink<Language>>(linkEnter.merge(linkSel))
       .style('opacity', d => (yearScale && srcIsPreTimeline(d)) ? 0.35 : 1)
       .attr('fill', 'none')
       .attr('d', linkPathFn)
@@ -650,7 +663,7 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
     const nodeSel = g.selectAll<SVGGElement, d3.HierarchyPointNode<Language>>('g.node')
       .data(renderNodes, d => d.data.id);
 
-    nodeSel.exit().transition(trans).style('opacity', 0).remove();
+    animate(nodeSel.exit()).style('opacity', 0).remove();
 
     const nodeEnter = nodeSel.enter().append('g')
       .attr('class', 'node')
@@ -682,12 +695,11 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
     // ── Merge enter + existing, apply transitions ─────────────────────────────
     const nodeAll = nodeEnter.merge(nodeSel);
 
-    nodeAll.transition(trans)
+    animate<SVGGElement, d3.HierarchyPointNode<Language>>(nodeAll)
       .style('opacity', 1)
       .attr('transform', d => { const p = getPos(d); return `translate(${p.y},${p.x})`; });
 
-    nodeAll.select<SVGCircleElement>('.main-circle')
-      .transition(trans)
+    animate<SVGCircleElement, d3.HierarchyPointNode<Language>>(nodeAll.select<SVGCircleElement>('.main-circle'))
       .attr('r', r)
       .attr('fill', d => isSel(d) ? '#c5a059' : isRoot(d) ? '#1a1308' : '#0a0a0a')
       .attr('stroke', '#c5a059')

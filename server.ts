@@ -8,7 +8,10 @@ dotenv.config();
 const app = express();
 const PORT = 3000;
 const DATA_FILE = path.join(process.cwd(), "data", "languages.json");
-const SEED_FILE = path.join(process.cwd(), "languages-seed.json");
+// Source-of-truth dataset (read-only, tracked in git at the repo root, since
+// data/ is gitignored and regenerated). data/languages.json is the mutable
+// working copy that the seed mechanism re-seeds from this file when it changes.
+const SEED_FILE = path.join(process.cwd(), "languages-14.json");
 
 app.use(express.json());
 
