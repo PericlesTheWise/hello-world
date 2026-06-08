@@ -291,7 +291,7 @@ const PLACEHOLDER = [
 
   // ── LANGUAGE ISOLATES & OTHER ─────────────────────────────────────────────
 ];
-// PLACEHOLDER array is unused — SEED_LANGUAGES is loaded from languages-seed.json above
+// PLACEHOLDER array is unused — SEED_LANGUAGES is loaded from languages-14.json above
 
 function loadLanguages(): Language[] {
   if (!fs.existsSync(DATA_FILE)) return SEED_LANGUAGES;
