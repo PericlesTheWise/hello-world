@@ -26,14 +26,21 @@ const TRANSITION_MS = 280;
 export const TIMELINE_MIN_YEAR = -5000;
 export const TIMELINE_MAX_YEAR = 2025;
 
-function parseEarliestYear(approxDate?: string): number | null {
-  if (!approxDate) return null;
+function parseEarliestYear(approxDate?: string | number | null): number | null {
+  if (approxDate == null) return null;
+  // Some datasets store the year as a plain number.
+  if (typeof approxDate === 'number') return Number.isFinite(approxDate) ? approxDate : null;
+  if (typeof approxDate !== 'string' || !approxDate.trim()) return null;
+
   const s = approxDate.replace(/,/g, '');
 
   const nums: { val: number; idx: number }[] = [];
   const numRe = /\d+/g;
   let m: RegExpExecArray | null;
-  while ((m = numRe.exec(s)) !== null) nums.push({ val: parseInt(m[0], 10), idx: m.index });
+  while ((m = numRe.exec(s)) !== null) {
+    const val = parseInt(m[0], 10);
+    if (Number.isFinite(val)) nums.push({ val, idx: m.index });
+  }
   if (nums.length === 0) return null;
 
   const eras: { bce: boolean; idx: number }[] = [];
@@ -47,7 +54,62 @@ function parseEarliestYear(approxDate?: string): number | null {
     const era = eras.find(e => e.idx >= n.idx) ?? [...eras].reverse().find(e => e.idx < n.idx);
     return era && era.bce ? -n.val : n.val;
   });
-  return Math.min(...signed);
+  const result = Math.min(...signed);
+  return Number.isFinite(result) ? result : null;
+}
+
+// Sanitizes a raw language array before it reaches any layout logic.
+// Three passes run in order so each pass can assume the previous is clean:
+//   1. Deduplicate IDs — keep first occurrence, warn and drop subsequent ones.
+//   2. Broken parent refs — any node whose parentLanguageId doesn't exist in
+//      the dataset is promoted to a family root (parentLanguageId = null).
+//   3. Cycle detection — walks each node's ancestor chain; any node that
+//      closes a cycle is promoted to root so stratify() never sees a loop.
+function sanitizeLanguages(languages: Language[]): Language[] {
+  // Pass 1 — deduplicate IDs
+  const seen = new Set<string>();
+  const pass1: Language[] = [];
+  for (const l of languages) {
+    if (!l.id) { console.warn('[LingaTree] Skipping node with missing id:', l); continue; }
+    if (seen.has(l.id)) { console.warn(`[LingaTree] Duplicate id "${l.id}" — extra entry skipped`); continue; }
+    seen.add(l.id);
+    pass1.push(l);
+  }
+
+  // Pass 2 — broken parent refs
+  const idSet = new Set(pass1.map(l => l.id));
+  const pass2 = pass1.map(l => {
+    if (l.parentLanguageId != null && !idSet.has(l.parentLanguageId)) {
+      console.warn(`[LingaTree] "${l.name}" has unknown parent "${l.parentLanguageId}" — promoted to root`);
+      return { ...l, parentLanguageId: null };
+    }
+    return l;
+  });
+
+  // Pass 3 — cycle detection via ancestor-chain walk
+  const parentOf = new Map<string, string | null>(pass2.map(l => [l.id, l.parentLanguageId]));
+  const cycleNodes = new Set<string>();
+  for (const l of pass2) {
+    if (cycleNodes.has(l.id)) continue;
+    const path: string[] = [];
+    const inPath = new Set<string>();
+    let cur: string | null = l.id;
+    while (cur != null) {
+      if (cycleNodes.has(cur)) break;        // already resolved upstream
+      if (inPath.has(cur)) {                 // cycle found — mark all members
+        const start = path.indexOf(cur);
+        for (let i = start; i < path.length; i++) cycleNodes.add(path[i]);
+        break;
+      }
+      path.push(cur);
+      inPath.add(cur);
+      cur = parentOf.get(cur) ?? null;
+    }
+  }
+  if (cycleNodes.size > 0) {
+    console.warn('[LingaTree] Cycles broken by promoting to root:', [...cycleNodes]);
+  }
+  return pass2.map(l => cycleNodes.has(l.id) ? { ...l, parentLanguageId: null } : l);
 }
 
 function buildChildrenMap(languages: Language[]): Map<string, Language[]> {
@@ -64,12 +126,14 @@ function buildChildrenMap(languages: Language[]): Map<string, Language[]> {
 
 function computeInitialExpanded(languages: Language[], childrenMap: Map<string, Language[]>): Set<string> {
   const expanded = new Set<string>();
-  function deepestPath(id: string): string[] {
+  function deepestPath(id: string, visited = new Set<string>()): string[] {
+    if (visited.has(id)) return [id]; // cycle guard — should not occur after sanitizeLanguages
+    visited.add(id);
     const children = childrenMap.get(id) ?? [];
     if (!children.length) return [id];
     let best: string[] = [];
     for (const c of children) {
-      const p = deepestPath(c.id);
+      const p = deepestPath(c.id, visited);
       if (p.length > best.length) best = p;
     }
     return [id, ...best];
@@ -135,24 +199,30 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   // Bumped by the "Reset View" control to force a re-fit through the layout effect.
   const [fitNonce, setFitNonce] = useState(0);
-  const childrenMap = useMemo(() => buildChildrenMap(languages), [languages]);
+
+  // Sanitize once per languages-prop change: deduplicates IDs, promotes nodes
+  // with unknown parents to roots, and breaks any ancestor-chain cycles. All
+  // downstream memos consume this safe array, not the raw prop.
+  const safeLanguages = useMemo(() => sanitizeLanguages(languages), [languages]);
+
+  const childrenMap = useMemo(() => buildChildrenMap(safeLanguages), [safeLanguages]);
 
   const [expandedIds, setExpandedIds] = useState<Set<string>>(
-    () => computeInitialExpanded(languages, buildChildrenMap(languages))
+    () => computeInitialExpanded(safeLanguages, buildChildrenMap(safeLanguages))
   );
 
   useEffect(() => {
-    setExpandedIds(computeInitialExpanded(languages, childrenMap));
+    setExpandedIds(computeInitialExpanded(safeLanguages, childrenMap));
     fittedRef.current = false;
-  }, [languages, childrenMap]);
+  }, [safeLanguages, childrenMap]);
 
   useEffect(() => {
     fittedRef.current = false;
   }, [viewMode]);
 
   const visibleLanguages = useMemo(
-    () => getVisibleLanguages(languages, expandedIds, childrenMap),
-    [languages, expandedIds, childrenMap]
+    () => getVisibleLanguages(safeLanguages, expandedIds, childrenMap),
+    [safeLanguages, expandedIds, childrenMap]
   );
 
   const handleNodeClick = useCallback((lang: Language) => {
