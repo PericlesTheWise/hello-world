@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import * as d3 from 'd3';
-import { Plus, Minus, RotateCcw, SlidersHorizontal, X } from 'lucide-react';
+import { Plus, Minus, RotateCcw, SlidersHorizontal, X, Search } from 'lucide-react';
 import { Language } from '../types';
 
 interface Props {
@@ -180,6 +180,23 @@ function computeFamilyOf(languages: Language[]): Map<string, string> {
   return familyOf;
 }
 
+// Case-insensitive fuzzy ranking for the global search box. Returns a score
+// (higher = better) or -1 for no match. Priority: exact prefix > substring >
+// subsequence (characters appear in order but not contiguously). Shorter names
+// rank above longer ones within the same tier so "Greek" beats "Greek, Mycenaean".
+function fuzzyScore(name: string, q: string): number {
+  const n = name.toLowerCase();
+  const idx = n.indexOf(q);
+  if (idx === 0) return 1000 - n.length;
+  if (idx > 0) return 600 - idx - n.length * 0.01;
+  // Subsequence fallback
+  let qi = 0;
+  for (let i = 0; i < n.length && qi < q.length; i++) {
+    if (n[i] === q[qi]) qi++;
+  }
+  return qi === q.length ? 200 - n.length : -1;
+}
+
 function isAncestor(node: d3.HierarchyPointNode<Language>, selectedId?: string): boolean {
   if (!selectedId) return false;
   let cur: d3.HierarchyPointNode<Language> | null = node;
@@ -216,6 +233,16 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
   const lockedTxRef = useRef(0);
   // Allowed vertical translate range (screen px) for clamping timeline scroll.
   const tyBoundsRef = useRef<{ min: number; max: number }>({ min: 0, max: 0 });
+  // Layout-coordinate lookup (id → {x: vertical slot, y: horizontal px}), kept
+  // fresh by the layout effect so the search auto-scroll can read a node's exact
+  // canvas position without re-running the whole layout.
+  const nodePosRef = useRef<Map<string, { x: number; y: number }>>(new Map());
+  // Set when a search result is chosen; the post-layout effect consumes it to
+  // glide the camera onto the node once its position is available, then clears it.
+  const pendingPanRef = useRef<string | null>(null);
+  // Mirror of highlightedNodeId readable inside the once-installed zoom/wheel
+  // closures (which can't see the latest state value directly).
+  const highlightedNodeIdRef = useRef<string | null>(null);
 
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   // Bumped by the "Reset View" control to force a re-fit through the layout effect.
@@ -296,6 +323,87 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
     () => getVisibleLanguages(activeLanguages, expandedIds, childrenMap),
     [activeLanguages, expandedIds, childrenMap]
   );
+
+  // ── Global search & auto-scroll navigation ──────────────────────────────────
+  const [searchQuery, setSearchQuery] = useState('');
+  const [highlightedNodeId, setHighlightedNodeId] = useState<string | null>(null);
+  useEffect(() => { highlightedNodeIdRef.current = highlightedNodeId; }, [highlightedNodeId]);
+
+  // id → parent id, and id → display name, for ancestor-expansion and the
+  // "Name (Family)" result label respectively.
+  const parentOfMap = useMemo(
+    () => new Map(safeLanguages.map(l => [l.id, l.parentLanguageId])),
+    [safeLanguages]
+  );
+  const nameById = useMemo(
+    () => new Map(safeLanguages.map(l => [l.id, l.name])),
+    [safeLanguages]
+  );
+
+  // Fuzzy, case-insensitive ranking against the ACTIVE (family-enabled) dataset.
+  const searchResults = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return [] as { lang: Language; family: string }[];
+    const scored: { lang: Language; score: number }[] = [];
+    for (const l of activeLanguages) {
+      const score = fuzzyScore(l.name, q);
+      if (score > -1) scored.push({ lang: l, score });
+    }
+    scored.sort((a, b) => b.score - a.score || a.lang.name.localeCompare(b.lang.name));
+    return scored.slice(0, 40).map(s => ({
+      lang: s.lang,
+      family: nameById.get(familyOf.get(s.lang.id) ?? s.lang.id) ?? '—',
+    }));
+  }, [searchQuery, activeLanguages, familyOf, nameById]);
+
+  // Smoothly center the camera on a node. Safe to schedule an 800ms transition
+  // here because this runs from a discrete user action (or the one-shot pending
+  // effect), never from a reactive layout loop. Returns false if the node has no
+  // current position (e.g. not yet grown / still collapsed) so the caller can retry.
+  const panToNode = useCallback((id: string): boolean => {
+    if (!svgRef.current || !zoomRef.current) return false;
+    const pos = nodePosRef.current.get(id);
+    if (!pos) return false;
+    const { width, height } = dimensions;
+    if (width === 0) return false;
+    const svg = d3.select(svgRef.current);
+    let target: d3.ZoomTransform;
+    if (modeRef.current === 'timeline') {
+      // X is locked; only recenter vertically, clamped to the legal scroll range.
+      const K = lockedKRef.current;
+      const b = tyBoundsRef.current;
+      const ty = Math.max(b.min, Math.min(b.max, height / 2 - pos.x * K));
+      target = d3.zoomIdentity.translate(lockedTxRef.current, ty).scale(K);
+    } else {
+      // Tree mode: pan both axes at the current scale to center the node.
+      const K = transformRef.current.k;
+      const tx = width / 2 - pos.y * K;
+      const ty = height / 2 - pos.x * K;
+      target = d3.zoomIdentity.translate(tx, ty).scale(K);
+    }
+    svg.transition().duration(800).ease(d3.easeCubicInOut)
+      .call(zoomRef.current.transform, target);
+    return true;
+  }, [dimensions]);
+
+  // Choosing a search result: reveal the node (expand ancestors, advance the
+  // scrubber if it hasn't grown yet), highlight it, and queue the camera pan.
+  const handleSearchSelect = useCallback((lang: Language) => {
+    setExpandedIds(prev => {
+      const next = new Set(prev);
+      let cur = parentOfMap.get(lang.id) ?? null;
+      while (cur) { next.add(cur); cur = parentOfMap.get(cur) ?? null; }
+      return next;
+    });
+    if (viewMode === 'timeline' && onYearChange) {
+      const yr = parseEarliestYear(lang.approxDate);
+      if (yr != null && yr > currentYear) onYearChange(Math.min(TIMELINE_MAX_YEAR, yr));
+    }
+    onSelect(lang);
+    setHighlightedNodeId(lang.id);
+    pendingPanRef.current = lang.id;
+    setSearchQuery('');
+  }, [parentOfMap, viewMode, onYearChange, currentYear, onSelect]);
 
   const handleNodeClick = useCallback((lang: Language) => {
     const hasKids = (childrenMap.get(lang.id)?.length ?? 0) > 0;
@@ -502,6 +610,14 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
       return { x: d.x, y: d.y };
     };
 
+    // Publish the current layout coordinates so the search auto-scroll can pan to
+    // any rendered node without re-deriving the layout. Only nodes present here
+    // (grown + expanded + family-enabled) are pannable; others fail and retry.
+    nodePosRef.current = new Map(renderNodes.map(d => {
+      const p = getPos(d);
+      return [d.data.id, { x: p.x, y: p.y }] as const;
+    }));
+
     // ── SVG / zoom init ───────────────────────────────────────────────────────
     const svg = d3.select(svgRef.current);
 
@@ -536,10 +652,19 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
           transformRef.current = event.transform;
           gRef.current?.attr('transform', event.transform);
           // sourceEvent is set only for genuine user gestures (drag/wheel/pinch);
-          // programmatic transitions leave it null. A real gesture pauses tracking.
-          if (event.sourceEvent) autoTrackPausedRef.current = true;
+          // programmatic transitions leave it null. A real gesture pauses tracking
+          // and dismisses any search highlight (the user has taken over navigation).
+          if (event.sourceEvent) {
+            autoTrackPausedRef.current = true;
+            if (highlightedNodeIdRef.current) setHighlightedNodeId(null);
+          }
         });
       svg.call(zoomRef.current);
+
+      // Click on empty canvas (the full-size hit rect) clears the search highlight.
+      svg.select<SVGRectElement>('rect.zoom-bg').on('click', () => {
+        if (highlightedNodeIdRef.current) setHighlightedNodeId(null);
+      });
 
       // Vertical-only scroll for the timeline: wheel/trackpad updates ONLY ty,
       // leaving the locked X axis untouched. The constrain() above clamps ty.
@@ -556,6 +681,7 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
           .scale(lockedKRef.current);
         d3.select(svgRef.current!).call(zoomRef.current.transform, next);
         autoTrackPausedRef.current = true;
+        if (highlightedNodeIdRef.current) setHighlightedNodeId(null);
       }, { passive: false } as AddEventListenerOptions);
     }
 
@@ -831,7 +957,38 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
     applyLabel(nodeAll.select<SVGTextElement>('.lbl-fg'))
       .style('fill', d => isSel(d) ? '#c5a059' : isRoot(d) ? '#d4bc8a' : '#e0d8cc')
       .style('opacity', d => isSel(d) ? 1 : 0.85);
-  }, [visibleLanguages, expandedIds, dimensions, selectedId, fontSize, childrenMap, viewMode, currentYear, fitNonce]);
+
+    // ── Search highlight ring ─────────────────────────────────────────────────
+    // A single pulsing gold ring drawn over the node the user jumped to via
+    // search. Rebuilt each render (cheap — one element) and lives inside the zoom
+    // group so it stays glued to the node through the pan and any scroll.
+    g.selectAll('g.search-highlight').remove();
+    if (highlightedNodeId) {
+      const hn = renderNodes.find(d => d.data.id === highlightedNodeId);
+      if (hn) {
+        const p = getPos(hn);
+        const hg = g.append('g').attr('class', 'search-highlight')
+          .attr('transform', `translate(${p.y},${p.x})`)
+          .style('pointer-events', 'none');
+        // Steady inner ring + expanding/fading outer pulse.
+        hg.append('circle').attr('class', 'search-pulse-core')
+          .attr('r', r(hn) + 4).attr('fill', 'none')
+          .attr('stroke', '#ffd86b').attr('stroke-width', 2)
+          .style('filter', 'drop-shadow(0 0 6px rgba(255,216,107,0.9))');
+        hg.append('circle').attr('class', 'search-pulse-ring')
+          .attr('r', r(hn) + 4).attr('fill', 'none')
+          .attr('stroke', '#ffd86b').attr('stroke-width', 2.5);
+      }
+    }
+  }, [visibleLanguages, expandedIds, dimensions, selectedId, fontSize, childrenMap, viewMode, currentYear, fitNonce, highlightedNodeId]);
+
+  // After the layout effect has repopulated nodePosRef, execute any queued pan.
+  // If the target isn't positioned yet (e.g. the scrubber is still advancing to
+  // reveal it) the pending id is kept and retried on the next layout commit.
+  useEffect(() => {
+    if (!pendingPanRef.current) return;
+    if (panToNode(pendingPanRef.current)) pendingPanRef.current = null;
+  }, [highlightedNodeId, visibleLanguages, dimensions, currentYear, panToNode]);
 
   // Tick years for the HTML axis overlay — same set as was in the SVG axis.
   const TICK_YEARS = [-5000, -4000, -3000, -2000, -1000, 0, 500, 1000, 1500, 2000];
@@ -841,6 +998,61 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
   return (
     <div ref={containerRef} className="w-full h-full relative overflow-hidden" style={{ background: '#0a0a0a' }}>
       <svg ref={svgRef} className="w-full h-full" />
+
+      {/* ── Global search overlay (top-left) ────────────────────────────────────
+           Fuzzy-matches the active dataset as the user types; choosing a result
+           expands ancestors, advances the scrubber if needed, drops a pulsing
+           highlight ring, and glides the camera onto the node. ───────────────── */}
+      <div className="absolute top-4 left-4 z-20 w-72">
+        <div className="flex items-center gap-2 px-3 py-2 bg-onyx/80 backdrop-blur-sm border border-gold/20 rounded-sm focus-within:border-gold/50 transition-colors">
+          <Search className="w-3.5 h-3.5 text-gold/50 shrink-0" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') setSearchQuery('');
+              if (e.key === 'Enter' && searchResults.length) handleSearchSelect(searchResults[0].lang);
+            }}
+            placeholder="Search languages…"
+            className="flex-1 bg-transparent text-xs text-parchment placeholder:text-gold/30 outline-none"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              title="Clear"
+              className="text-gold/40 hover:text-gold transition-colors shrink-0"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+
+        {searchQuery.trim() && (
+          <div className="mt-1 max-h-80 overflow-y-auto bg-[#080808]/95 backdrop-blur-md border border-gold/20 rounded-sm shadow-2xl">
+            {searchResults.length === 0 ? (
+              <div className="px-3 py-3 text-[11px] text-gold/40 font-mono uppercase tracking-[0.15em]">
+                No matches
+              </div>
+            ) : (
+              searchResults.map(({ lang, family }) => (
+                <button
+                  key={lang.id}
+                  onClick={() => handleSearchSelect(lang)}
+                  className="w-full flex items-baseline gap-2 px-3 py-2 text-left hover:bg-gold/10 transition-colors group"
+                >
+                  <span className="text-xs text-parchment truncate group-hover:text-gold">
+                    {lang.name}
+                  </span>
+                  <span className="text-[10px] text-gold/40 font-mono truncate ml-auto shrink-0">
+                    {family}
+                  </span>
+                </button>
+              ))
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Filter Families toggle — opens the slide-out panel. */}
       <button

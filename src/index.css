@@ -37,3 +37,20 @@
     background: rgba(197, 160, 89, 0.4);
   }
 }
+
+/* Search auto-scroll highlight: a gold ring that expands & fades repeatedly
+   around the node the user jumped to. The ring circle is centered on the node's
+   local (0,0), so transform-origin: center scales it from the node center. */
+@keyframes search-pulse {
+  0%   { transform: scale(0.55); opacity: 0.95; }
+  70%  { transform: scale(2.1);  opacity: 0;    }
+  100% { transform: scale(2.1);  opacity: 0;    }
+}
+.search-pulse-ring {
+  transform-origin: center;
+  animation: search-pulse 1.5s cubic-bezier(0.22, 0.61, 0.36, 1) infinite;
+  pointer-events: none;
+}
+.search-pulse-core {
+  pointer-events: none;
+}
