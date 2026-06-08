@@ -446,16 +446,19 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
       if (!slots.length) return;
       const minS = Math.min(...slots) * K;
       const maxS = Math.max(...slots) * K;
-      const M = 80; // top/bottom breathing room
+      const M = 80; // top breathing room
+      // Extra clearance at the bottom so the lowest rows scroll clear of the
+      // floating Temporal Scrubber bar instead of hiding behind it.
+      const BOTTOM_BUFFER = 120;
       let tyBounds: { min: number; max: number };
-      if (maxS - minS + 2 * M <= dimensions.height) {
+      if (maxS - minS + M + BOTTOM_BUFFER <= dimensions.height) {
         // Content fits — pin it centered (no scroll).
         const ty = dimensions.height / 2 - (minS + maxS) / 2;
         tyBounds = { min: ty, max: ty };
       } else {
         tyBounds = {
-          min: (dimensions.height - M) - maxS, // scrolled to bottom
-          max: M - minS,                        // scrolled to top
+          min: (dimensions.height - BOTTOM_BUFFER) - maxS, // scrolled to bottom
+          max: M - minS,                                    // scrolled to top
         };
       }
       tyBoundsRef.current = tyBounds;
@@ -629,12 +632,24 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
       .style('font-size', d => `${r(d) * 1.5}px`)
       .style('fill', d => isSel(d) ? '#0a0a0a' : '#c5a059');
 
+    // Modern / right-edge nodes flip their label to the left so it stays inside
+    // the viewport. A node flips when its year is modern (> 1850 CE) or its
+    // on-screen x is within 180px of the right edge (TX/K are the locked
+    // timeline transform; screen x = TX + yearPx * K).
+    const flipLabel = (d: d3.HierarchyPointNode<Language>) => {
+      if (!yearScale) return false;
+      const year = parseEarliestYear(d.data.approxDate);
+      if (year != null && year > 1850) return true;
+      const screenX = lockedTxRef.current + getPos(d).y * lockedKRef.current;
+      return screenX > dimensions.width - 180;
+    };
+
     // In timeline mode the horizontal axis is year, so left/right placement
-    // based on d.children has no meaning — put all labels to the right.
+    // based on d.children has no meaning — labels go right unless flipped.
     const labelX = (d: d3.HierarchyPointNode<Language>) =>
-      yearScale ? r(d) + 6 : d.children ? -(r(d) + 6) : r(d) + 6;
+      yearScale ? (flipLabel(d) ? -(r(d) + 8) : r(d) + 6) : d.children ? -(r(d) + 6) : r(d) + 6;
     const labelAnchor = (d: d3.HierarchyPointNode<Language>) =>
-      yearScale ? 'start' : d.children ? 'end' : 'start';
+      yearScale ? (flipLabel(d) ? 'end' : 'start') : d.children ? 'end' : 'start';
 
     const applyLabel = (sel: d3.Selection<SVGTextElement, d3.HierarchyPointNode<Language>, SVGGElement, unknown>) =>
       sel
