@@ -340,12 +340,14 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
     [safeLanguages]
   );
 
-  // Fuzzy, case-insensitive ranking against the ACTIVE (family-enabled) dataset.
+  // Fuzzy, case-insensitive ranking against the FULL sanitized dataset so hidden
+  // families are still findable. Each result carries a `hidden` flag when its
+  // family is currently toggled off in the filter panel.
   const searchResults = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
-    if (!q) return [] as { lang: Language; family: string }[];
+    if (!q) return [] as { lang: Language; family: string; hidden: boolean }[];
     const scored: { lang: Language; score: number }[] = [];
-    for (const l of activeLanguages) {
+    for (const l of safeLanguages) {
       const score = fuzzyScore(l.name, q);
       if (score > -1) scored.push({ lang: l, score });
     }
@@ -353,8 +355,9 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
     return scored.slice(0, 40).map(s => ({
       lang: s.lang,
       family: nameById.get(familyOf.get(s.lang.id) ?? s.lang.id) ?? '—',
+      hidden: !enabledFamilyIds.has(familyOf.get(s.lang.id) ?? s.lang.id),
     }));
-  }, [searchQuery, activeLanguages, familyOf, nameById]);
+  }, [searchQuery, safeLanguages, familyOf, nameById, enabledFamilyIds]);
 
   // Smoothly center the camera on a node. Safe to schedule an 800ms transition
   // here because this runs from a discrete user action (or the one-shot pending
@@ -386,9 +389,19 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
     return true;
   }, [dimensions]);
 
-  // Choosing a search result: reveal the node (expand ancestors, advance the
-  // scrubber if it hasn't grown yet), highlight it, and queue the camera pan.
+  // Choosing a search result: re-enable the family if it was filtered out, then
+  // reveal the node (expand ancestors, advance the scrubber), highlight it, and
+  // queue the camera pan. The family re-enable is a single atomic setState so
+  // the layout effect sees both the new activeLanguages AND visibleLanguages in
+  // the same commit — ensuring nodePosRef is populated before the pan fires.
   const handleSearchSelect = useCallback((lang: Language) => {
+    const famId = familyOf.get(lang.id) ?? lang.id;
+    setEnabledFamilyIds(prev => {
+      if (prev.has(famId)) return prev;
+      const next = new Set(prev);
+      next.add(famId);
+      return next;
+    });
     setExpandedIds(prev => {
       const next = new Set(prev);
       let cur = parentOfMap.get(lang.id) ?? null;
@@ -403,7 +416,7 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
     setHighlightedNodeId(lang.id);
     pendingPanRef.current = lang.id;
     setSearchQuery('');
-  }, [parentOfMap, viewMode, onYearChange, currentYear, onSelect]);
+  }, [familyOf, parentOfMap, viewMode, onYearChange, currentYear, onSelect]);
 
   const handleNodeClick = useCallback((lang: Language) => {
     const hasKids = (childrenMap.get(lang.id)?.length ?? 0) > 0;
@@ -1035,17 +1048,18 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
                 No matches
               </div>
             ) : (
-              searchResults.map(({ lang, family }) => (
+              searchResults.map(({ lang, family, hidden }) => (
                 <button
                   key={lang.id}
                   onClick={() => handleSearchSelect(lang)}
-                  className="w-full flex items-baseline gap-2 px-3 py-2 text-left hover:bg-gold/10 transition-colors group"
+                  className={`w-full flex items-baseline gap-2 px-3 py-2 text-left hover:bg-gold/10 transition-colors group ${hidden ? 'opacity-50 hover:opacity-100' : ''}`}
                 >
                   <span className="text-xs text-parchment truncate group-hover:text-gold">
                     {lang.name}
                   </span>
-                  <span className="text-[10px] text-gold/40 font-mono truncate ml-auto shrink-0">
+                  <span className="text-[10px] font-mono truncate ml-auto shrink-0 text-gold/40">
                     {family}
+                    {hidden && <span className="ml-1 text-gold/30">· hidden</span>}
                   </span>
                 </button>
               ))
