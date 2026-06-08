@@ -472,6 +472,15 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
 
   useEffect(() => {
     if (!svgRef.current || dimensions.width === 0) return;
+
+    // Scorched-earth wipe of any highlight ring fragments from previous renders,
+    // hot-reload state, or nodes that exited with a fade transition but still
+    // have circle children in the DOM. Runs unconditionally before any layout
+    // work so later insertion always starts from a clean slate.
+    d3.select(svgRef.current)
+      .selectAll('.search-pulse-core, .search-pulse-ring, .search-highlight')
+      .remove();
+
     // All families disabled (or nothing visible): clear the canvas so no stale
     // nodes/links linger behind the empty-state overlay, then bail.
     if (visibleLanguages.length === 0) {
@@ -972,21 +981,25 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
       .style('opacity', d => isSel(d) ? 1 : 0.85);
 
     // ── Search highlight ring (nested per-node) ───────────────────────────────
-    // The pulsing ring lives INSIDE the highlighted node's own <g>, so it shares
-    // the node's local coordinate system and rides along with every layout
-    // transition/pan automatically — no separate global layer to fall out of
-    // sync when a hidden family expands and shifts the slots. Each render we drop
-    // any stale ring and (re)inject it into the one matching node.
-    nodeAll.selectAll('circle.search-pulse-core, circle.search-pulse-ring').remove();
+    // Lives inside the highlighted node's <g> so it shares its local coordinate
+    // system and glides with every layout transition automatically. The global
+    // wipe at effect entry already cleared all stale ring elements, so we just
+    // append once here — no conditional "already exists" guard is needed.
+    // cx/cy are deliberately 0 so the circles sit at the node's local origin;
+    // the parent <g> transform is what positions them on the canvas.
     if (highlightedNodeId) {
       const hl = nodeAll.filter(d => d.data.id === highlightedNodeId);
-      // Steady inner ring + outer expanding/fading pulse, inserted just under the
-      // main circle so the node's fill/icon stay legible on top.
-      hl.insert('circle', '.main-circle').attr('class', 'search-pulse-core')
+      // Steady inner ring (glow), inserted behind the main circle.
+      hl.insert('circle', '.main-circle')
+        .attr('class', 'search-pulse-core')
+        .attr('cx', 0).attr('cy', 0)
         .attr('r', d => r(d) + 4).attr('fill', 'none')
         .attr('stroke', '#ffd86b').attr('stroke-width', 2)
         .style('filter', 'drop-shadow(0 0 6px rgba(255,216,107,0.9))');
-      hl.insert('circle', '.main-circle').attr('class', 'search-pulse-ring')
+      // Outer expanding/fading pulse ring driven by @keyframes search-pulse.
+      hl.insert('circle', '.main-circle')
+        .attr('class', 'search-pulse-ring')
+        .attr('cx', 0).attr('cy', 0)
         .attr('r', d => r(d) + 4).attr('fill', 'none')
         .attr('stroke', '#ffd86b').attr('stroke-width', 2.5);
     }
