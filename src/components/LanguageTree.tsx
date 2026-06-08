@@ -971,27 +971,24 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
       .style('fill', d => isSel(d) ? '#c5a059' : isRoot(d) ? '#d4bc8a' : '#e0d8cc')
       .style('opacity', d => isSel(d) ? 1 : 0.85);
 
-    // ── Search highlight ring ─────────────────────────────────────────────────
-    // A single pulsing gold ring drawn over the node the user jumped to via
-    // search. Rebuilt each render (cheap — one element) and lives inside the zoom
-    // group so it stays glued to the node through the pan and any scroll.
-    g.selectAll('g.search-highlight').remove();
+    // ── Search highlight ring (nested per-node) ───────────────────────────────
+    // The pulsing ring lives INSIDE the highlighted node's own <g>, so it shares
+    // the node's local coordinate system and rides along with every layout
+    // transition/pan automatically — no separate global layer to fall out of
+    // sync when a hidden family expands and shifts the slots. Each render we drop
+    // any stale ring and (re)inject it into the one matching node.
+    nodeAll.selectAll('circle.search-pulse-core, circle.search-pulse-ring').remove();
     if (highlightedNodeId) {
-      const hn = renderNodes.find(d => d.data.id === highlightedNodeId);
-      if (hn) {
-        const p = getPos(hn);
-        const hg = g.append('g').attr('class', 'search-highlight')
-          .attr('transform', `translate(${p.y},${p.x})`)
-          .style('pointer-events', 'none');
-        // Steady inner ring + expanding/fading outer pulse.
-        hg.append('circle').attr('class', 'search-pulse-core')
-          .attr('r', r(hn) + 4).attr('fill', 'none')
-          .attr('stroke', '#ffd86b').attr('stroke-width', 2)
-          .style('filter', 'drop-shadow(0 0 6px rgba(255,216,107,0.9))');
-        hg.append('circle').attr('class', 'search-pulse-ring')
-          .attr('r', r(hn) + 4).attr('fill', 'none')
-          .attr('stroke', '#ffd86b').attr('stroke-width', 2.5);
-      }
+      const hl = nodeAll.filter(d => d.data.id === highlightedNodeId);
+      // Steady inner ring + outer expanding/fading pulse, inserted just under the
+      // main circle so the node's fill/icon stay legible on top.
+      hl.insert('circle', '.main-circle').attr('class', 'search-pulse-core')
+        .attr('r', d => r(d) + 4).attr('fill', 'none')
+        .attr('stroke', '#ffd86b').attr('stroke-width', 2)
+        .style('filter', 'drop-shadow(0 0 6px rgba(255,216,107,0.9))');
+      hl.insert('circle', '.main-circle').attr('class', 'search-pulse-ring')
+        .attr('r', d => r(d) + 4).attr('fill', 'none')
+        .attr('stroke', '#ffd86b').attr('stroke-width', 2.5);
     }
   }, [visibleLanguages, expandedIds, dimensions, selectedId, fontSize, childrenMap, viewMode, currentYear, fitNonce, highlightedNodeId]);
 
