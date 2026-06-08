@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import * as d3 from 'd3';
-import { Plus, Minus, RotateCcw } from 'lucide-react';
+import { Plus, Minus, RotateCcw, SlidersHorizontal, X } from 'lucide-react';
 import { Language } from '../types';
 
 interface Props {
@@ -159,6 +159,27 @@ function getVisibleLanguages(languages: Language[], expandedIds: Set<string>, ch
   return visible;
 }
 
+// Maps every node id to the id of its top-level "primary family" root (a node
+// whose parentLanguageId is null after sanitizeLanguages). Walks each node's
+// ancestor chain, memoizing results so the whole dataset resolves in ~O(n).
+// A guard set makes any residual cycle resolve to itself instead of looping.
+function computeFamilyOf(languages: Language[]): Map<string, string> {
+  const parentOf = new Map<string, string | null>(languages.map(l => [l.id, l.parentLanguageId]));
+  const familyOf = new Map<string, string>();
+  const resolve = (id: string, guard: Set<string>): string => {
+    const memo = familyOf.get(id);
+    if (memo) return memo;
+    const p = parentOf.get(id);
+    const root = (p == null || !parentOf.has(p) || guard.has(id))
+      ? id
+      : (guard.add(id), resolve(p, guard));
+    familyOf.set(id, root);
+    return root;
+  };
+  for (const l of languages) resolve(l.id, new Set());
+  return familyOf;
+}
+
 function isAncestor(node: d3.HierarchyPointNode<Language>, selectedId?: string): boolean {
   if (!selectedId) return false;
   let cur: d3.HierarchyPointNode<Language> | null = node;
@@ -207,6 +228,50 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
 
   const childrenMap = useMemo(() => buildChildrenMap(safeLanguages), [safeLanguages]);
 
+  // ── Family isolation / filtering ────────────────────────────────────────────
+  // Map each node → its top-level primary-family root, then derive the list of
+  // primary families (root id, name, total languages in that family).
+  const familyOf = useMemo(() => computeFamilyOf(safeLanguages), [safeLanguages]);
+  const primaryFamilies = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const l of safeLanguages) {
+      const fam = familyOf.get(l.id) ?? l.id;
+      counts.set(fam, (counts.get(fam) ?? 0) + 1);
+    }
+    return safeLanguages
+      .filter(l => l.parentLanguageId === null)
+      .map(r => ({ id: r.id, name: r.name, count: counts.get(r.id) ?? 1 }))
+      .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+  }, [safeLanguages, familyOf]);
+
+  // Enabled families default to ALL. Lazy-init avoids an empty first paint.
+  const [enabledFamilyIds, setEnabledFamilyIds] = useState<Set<string>>(
+    () => new Set(sanitizeLanguages(languages).filter(l => l.parentLanguageId === null).map(l => l.id))
+  );
+  // Whether the slide-out filter panel is open.
+  const [filterOpen, setFilterOpen] = useState(false);
+
+  // On a genuine dataset change (new families appear), reset selection to all.
+  // Skip the first run so we don't clobber the lazy-initialised set on mount.
+  const familiesInitRef = useRef(true);
+  useEffect(() => {
+    if (familiesInitRef.current) { familiesInitRef.current = false; return; }
+    setEnabledFamilyIds(new Set(primaryFamilies.map(f => f.id)));
+  }, [primaryFamilies]);
+
+  const toggleFamily = useCallback((id: string) => {
+    setEnabledFamilyIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }, []);
+  const selectAllFamilies = useCallback(
+    () => setEnabledFamilyIds(new Set(primaryFamilies.map(f => f.id))),
+    [primaryFamilies]
+  );
+  const deselectAllFamilies = useCallback(() => setEnabledFamilyIds(new Set()), []);
+
   const [expandedIds, setExpandedIds] = useState<Set<string>>(
     () => computeInitialExpanded(safeLanguages, buildChildrenMap(safeLanguages))
   );
@@ -220,9 +285,16 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
     fittedRef.current = false;
   }, [viewMode]);
 
+  // Drop every node whose top-level family is disabled. Because families are
+  // disjoint subtrees, excluding a node here also excludes all its descendants.
+  const activeLanguages = useMemo(
+    () => safeLanguages.filter(l => enabledFamilyIds.has(familyOf.get(l.id) ?? l.id)),
+    [safeLanguages, familyOf, enabledFamilyIds]
+  );
+
   const visibleLanguages = useMemo(
-    () => getVisibleLanguages(safeLanguages, expandedIds, childrenMap),
-    [safeLanguages, expandedIds, childrenMap]
+    () => getVisibleLanguages(activeLanguages, expandedIds, childrenMap),
+    [activeLanguages, expandedIds, childrenMap]
   );
 
   const handleNodeClick = useCallback((lang: Language) => {
@@ -278,7 +350,17 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
   }, []);
 
   useEffect(() => {
-    if (!svgRef.current || dimensions.width === 0 || visibleLanguages.length === 0) return;
+    if (!svgRef.current || dimensions.width === 0) return;
+    // All families disabled (or nothing visible): clear the canvas so no stale
+    // nodes/links linger behind the empty-state overlay, then bail.
+    if (visibleLanguages.length === 0) {
+      if (gRef.current) {
+        gRef.current.selectAll('path.link').remove();
+        gRef.current.selectAll('g.node').remove();
+        gRef.current.selectAll('g.growth-front').remove();
+      }
+      return;
+    }
 
     // ── Layout ────────────────────────────────────────────────────────────────
     const virtualRoot: Language = { id: VIRTUAL_ROOT_ID, name: 'World Languages', parentLanguageId: null, family: 'Root' };
@@ -549,13 +631,26 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
 
       // First paint / reset: center the grown content. Otherwise preserve the
       // user's current vertical scroll position.
-      let ty = fittedRef.current ? transformRef.current.y : dimensions.height / 2 - (minS + maxS) / 2;
+      const wasFitted = fittedRef.current;
+      const prevTy = transformRef.current.y;
+      let ty = wasFitted ? prevTy : dimensions.height / 2 - (minS + maxS) / 2;
       ty = clamp(ty, tyBounds.min, tyBounds.max);
       fittedRef.current = true;
 
-      // Enforce the lock instantly — the camera does not animate on scrub; only
-      // the nodes re-layout. constrain() re-clamps ty for safety.
-      svg.call(zoomRef.current.transform, d3.zoomIdentity.translate(TX, ty).scale(K));
+      // Camera & bounds safety snap: when families are toggled the content
+      // height changes, tyBounds shrinks/grows, and the preserved scroll may now
+      // fall outside the valid range. clamp() above pulls it back in; if that
+      // actually moved the camera (and we're not mid-scrub), animate the snap so
+      // it glides into the new bounds instead of jumping into a black void.
+      const target = d3.zoomIdentity.translate(TX, ty).scale(K);
+      const snapped = wasFitted && !scrubbingRef.current && Math.abs(ty - prevTy) > 0.5;
+      if (snapped) {
+        svg.transition(trans).call(zoomRef.current.transform, target);
+      } else {
+        // Enforce the lock instantly — no animation on scrub; constrain()
+        // re-clamps ty for safety.
+        svg.call(zoomRef.current.transform, target);
+      }
     } else if (!yearScale && !fittedRef.current && zoomRef.current && renderNodes.length) {
       const xs = renderNodes.map(d => d.x);
       const ys = renderNodes.map(d => d.y);
@@ -756,9 +851,29 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
     <div ref={containerRef} className="w-full h-full relative overflow-hidden" style={{ background: '#0a0a0a' }}>
       <svg ref={svgRef} className="w-full h-full" />
 
+      {/* Filter Families toggle — opens the slide-out panel. */}
+      <button
+        onClick={() => setFilterOpen(o => !o)}
+        title="Filter language families"
+        className={`absolute top-4 right-4 z-20 flex items-center gap-2 px-3 py-2 text-[10px] font-mono uppercase tracking-[0.15em] rounded-sm border backdrop-blur-sm transition-colors ${
+          filterOpen
+            ? 'bg-gold/20 text-gold border-gold/40'
+            : 'bg-onyx/80 text-gold/60 border-gold/20 hover:text-gold hover:bg-white/5'
+        }`}
+      >
+        <SlidersHorizontal className="w-3.5 h-3.5" />
+        Filter Families
+        {enabledFamilyIds.size < primaryFamilies.length && (
+          <span className="text-gold tabular-nums">
+            {enabledFamilyIds.size}/{primaryFamilies.length}
+          </span>
+        )}
+      </button>
+
       {/* Floating controls. Zoom +/- are hidden in timeline mode because the
-          horizontal axis is locked there; only Reset (re-center) is offered. */}
-      <div className="absolute top-4 right-4 flex flex-col gap-px bg-onyx/80 backdrop-blur-sm border border-gold/20 rounded-sm overflow-hidden">
+          horizontal axis is locked there; only Reset (re-center) is offered.
+          Sits below the Filter Families pill. */}
+      <div className="absolute top-16 right-4 flex flex-col gap-px bg-onyx/80 backdrop-blur-sm border border-gold/20 rounded-sm overflow-hidden">
         {viewMode !== 'timeline' && (
           <>
             <button onClick={handleZoomIn} title="Zoom in"
@@ -779,9 +894,85 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
         </button>
       </div>
 
+      {/* ── Slide-out family filter panel ──────────────────────────────────────
+           Slides in from the right edge. Toggling a checkbox updates
+           enabledFamilyIds, which re-derives visibleLanguages and triggers the
+           layout effect — an immediate, eased re-layout of the canvas. ──────── */}
+      <div
+        className={`absolute top-0 right-0 h-full w-72 z-30 flex flex-col bg-[#080808]/95 backdrop-blur-md border-l border-gold/20 shadow-2xl transition-transform duration-300 ease-out ${
+          filterOpen ? 'translate-x-0' : 'translate-x-full pointer-events-none'
+        }`}
+      >
+        <div className="flex items-center justify-between px-4 py-4 border-b border-gold/15 shrink-0">
+          <span className="text-[11px] uppercase tracking-[0.25em] text-gold font-mono">
+            Filter Families
+          </span>
+          <button
+            onClick={() => setFilterOpen(false)}
+            title="Close"
+            className="p-1 text-gold/50 hover:text-gold hover:bg-white/5 rounded-sm transition-colors"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        <div className="flex items-center gap-2 px-4 py-3 border-b border-gold/10 shrink-0">
+          <button
+            onClick={selectAllFamilies}
+            className="flex-1 py-1.5 text-[10px] uppercase tracking-[0.15em] font-mono border border-gold/20 rounded-sm text-gold/70 hover:text-gold hover:bg-gold/10 transition-colors"
+          >
+            Select All
+          </button>
+          <button
+            onClick={deselectAllFamilies}
+            className="flex-1 py-1.5 text-[10px] uppercase tracking-[0.15em] font-mono border border-gold/20 rounded-sm text-gold/70 hover:text-gold hover:bg-gold/10 transition-colors"
+          >
+            Deselect All
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-2 py-2">
+          {primaryFamilies.map(fam => {
+            const on = enabledFamilyIds.has(fam.id);
+            return (
+              <label
+                key={fam.id}
+                className="flex items-center gap-3 px-2 py-1.5 rounded-sm cursor-pointer hover:bg-white/5 transition-colors group"
+              >
+                <span
+                  className={`flex items-center justify-center w-4 h-4 rounded-[3px] border shrink-0 transition-colors ${
+                    on ? 'bg-gold border-gold' : 'border-gold/40 group-hover:border-gold/70'
+                  }`}
+                >
+                  {on && <span className="text-[10px] leading-none text-[#080808] font-bold">✓</span>}
+                </span>
+                <input
+                  type="checkbox"
+                  checked={on}
+                  onChange={() => toggleFamily(fam.id)}
+                  className="sr-only"
+                />
+                <span className={`flex-1 text-xs truncate transition-colors ${on ? 'text-parchment' : 'text-parchment/40'}`}>
+                  {fam.name}
+                </span>
+                <span className="text-[10px] font-mono tabular-nums text-gold/40 shrink-0">
+                  {fam.count}
+                </span>
+              </label>
+            );
+          })}
+        </div>
+
+        <div className="px-4 py-3 border-t border-gold/10 shrink-0 text-[9px] font-mono uppercase tracking-[0.15em] text-gold/30">
+          {enabledFamilyIds.size} / {primaryFamilies.length} families shown
+        </div>
+      </div>
+
       {visibleLanguages.length === 0 && (
-        <div className="absolute inset-0 flex items-center justify-center text-gold/40 uppercase tracking-[0.3em] font-mono text-xs">
-          Accessing Genealogical Records…
+        <div className="absolute inset-0 flex items-center justify-center text-gold/40 uppercase tracking-[0.3em] font-mono text-xs pointer-events-none">
+          {primaryFamilies.length > 0 && enabledFamilyIds.size === 0
+            ? 'No families selected'
+            : 'Accessing Genealogical Records…'}
         </div>
       )}
 
