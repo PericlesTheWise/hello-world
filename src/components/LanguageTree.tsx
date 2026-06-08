@@ -632,25 +632,16 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
       // First paint / reset: center the grown content. Otherwise preserve the
       // user's current vertical scroll position.
       const wasFitted = fittedRef.current;
-      const prevTy = transformRef.current.y;
-      let ty = wasFitted ? prevTy : dimensions.height / 2 - (minS + maxS) / 2;
+      let ty = wasFitted ? transformRef.current.y : dimensions.height / 2 - (minS + maxS) / 2;
       ty = clamp(ty, tyBounds.min, tyBounds.max);
       fittedRef.current = true;
 
-      // Camera & bounds safety snap: when families are toggled the content
-      // height changes, tyBounds shrinks/grows, and the preserved scroll may now
-      // fall outside the valid range. clamp() above pulls it back in; if that
-      // actually moved the camera (and we're not mid-scrub), animate the snap so
-      // it glides into the new bounds instead of jumping into a black void.
+      // Always snap instantly — never schedule a D3 transition on the zoom
+      // transform from within the layout effect. svg.transition.call(zoom.transform)
+      // dispatches zoom events on every animation frame, re-triggering this effect
+      // and causing an infinite render loop when family filters change tyBounds.
       const target = d3.zoomIdentity.translate(TX, ty).scale(K);
-      const snapped = wasFitted && !scrubbingRef.current && Math.abs(ty - prevTy) > 0.5;
-      if (snapped) {
-        svg.transition(trans).call(zoomRef.current.transform, target);
-      } else {
-        // Enforce the lock instantly — no animation on scrub; constrain()
-        // re-clamps ty for safety.
-        svg.call(zoomRef.current.transform, target);
-      }
+      svg.call(zoomRef.current.transform, target);
     } else if (!yearScale && !fittedRef.current && zoomRef.current && renderNodes.length) {
       const xs = renderNodes.map(d => d.x);
       const ys = renderNodes.map(d => d.y);
