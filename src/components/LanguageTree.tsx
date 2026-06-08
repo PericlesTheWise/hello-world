@@ -283,47 +283,62 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
     if (yearScale) {
       // Hard vertical clearance floor: at least 26px on SCREEN between any two
       // nodes. Layout coords are scaled by timelineK on screen, so divide the
-      // 26px target by timelineK to get the data-space floor. Leaf rows get a bit
-      // extra headroom; internal nodes are pushed to at least the 26px floor.
+      // 26px target by timelineK to get the data-space floor.
       const SCREEN_FLOOR = 26;
       const dataFloor = SCREEN_FLOOR / timelineK;
       const LEAF_SPACING = Math.max(34, Math.ceil(dataFloor * 1.3));
-      // Minimum visual gap between any two nodes — the strict 26px screen floor.
       const MIN_GAP = Math.ceil(dataFloor);
       let leafIdx = 0;
 
       const grownKids = (node: d3.HierarchyPointNode<Language>) =>
         (node.children ?? []).filter(c => grownSet.has(c.data.id));
 
-      function assignY(node: d3.HierarchyPointNode<Language>): void {
+      // Phase 1 — global leaf slots: DFS assigns each grown leaf a strictly
+      // sequential index that is unique across ALL independent family trees.
+      // Independent families stack beneath one another without competing for
+      // the same slot because leafIdx is never reset between subtrees.
+      function assignLeaves(node: d3.HierarchyPointNode<Language>): void {
         if (node.data.id === VIRTUAL_ROOT_ID) {
-          grownKids(node).forEach(c => assignY(c));
+          grownKids(node).forEach(c => assignLeaves(c));
           return;
         }
         const kids = grownKids(node);
         if (kids.length === 0) {
-          // Grown leaf (so far): take the next sequential slot.
           timelineY.set(node.data.id, leafIdx * LEAF_SPACING);
           leafIdx++;
+        } else {
+          kids.forEach(c => assignLeaves(c));
+        }
+      }
+      assignLeaves(root);
+
+      // Phase 2 — internal node midpoints: place each grown internal node at
+      // the vertical midpoint of its direct grown children. Children are already
+      // placed from phase 1 (DFS bottom-up), so the lookup is always valid.
+      function assignInternal(node: d3.HierarchyPointNode<Language>): void {
+        if (node.data.id === VIRTUAL_ROOT_ID) {
+          grownKids(node).forEach(c => assignInternal(c));
           return;
         }
-        kids.forEach(c => assignY(c));
-        const childYs = kids.map(c => timelineY.get(c.data.id)!);
-        const mid = (Math.min(...childYs) + Math.max(...childYs)) / 2;
-
-        // With an odd number of equally-spaced leaves the midpoint lands exactly
-        // on the middle leaf, and ancestor chains all collapse to the same y.
-        // Walk outward from the ideal midpoint in alternating directions until
-        // we find a position that is at least MIN_GAP from every placed node.
-        const placed = [...timelineY.values()];
-        let y = mid;
-        for (let step = 1; step <= 12 && placed.some(v => Math.abs(v - y) < MIN_GAP); step++) {
-          const sign = step % 2 === 0 ? 1 : -1;
-          y = mid + sign * Math.ceil(step / 2) * MIN_GAP;
-        }
-        timelineY.set(node.data.id, y);
+        const kids = grownKids(node);
+        if (kids.length === 0) return; // leaf: already placed
+        kids.forEach(c => assignInternal(c));
+        const ys = kids.map(c => timelineY.get(c.data.id) ?? 0);
+        timelineY.set(node.data.id, (Math.min(...ys) + Math.max(...ys)) / 2);
       }
-      assignY(root);
+      assignInternal(root);
+
+      // Phase 3 — push-apart: sort all placed nodes by y and shift any pair
+      // that is closer than MIN_GAP upward. Leaves are already LEAF_SPACING
+      // apart (>= MIN_GAP), so only internal node midpoints that landed on top
+      // of another node get nudged. O(n log n) and guaranteed overlap-free.
+      const sorted = [...timelineY.entries()].sort((a, b) => a[1] - b[1]);
+      for (let i = 1; i < sorted.length; i++) {
+        if (sorted[i][1] < sorted[i - 1][1] + MIN_GAP) {
+          sorted[i][1] = sorted[i - 1][1] + MIN_GAP;
+          timelineY.set(sorted[i][0], sorted[i][1]);
+        }
+      }
     }
 
     const getPos = (d: d3.HierarchyPointNode<Language>) => {
@@ -380,8 +395,12 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
         if (modeRef.current !== 'timeline' || !zoomRef.current) return;
         event.preventDefault();
         const cur = transformRef.current;
+        const b = tyBoundsRef.current;
+        // Clamp here before constrain() so the scroll hard-stops at content
+        // bounds even if tyBoundsRef is briefly stale (e.g. during fast scrub).
+        const nextTy = Math.max(b.min, Math.min(b.max, cur.y - event.deltaY));
         const next = d3.zoomIdentity
-          .translate(lockedTxRef.current, cur.y - event.deltaY)
+          .translate(lockedTxRef.current, nextTy)
           .scale(lockedKRef.current);
         d3.select(svgRef.current!).call(zoomRef.current.transform, next);
         autoTrackPausedRef.current = true;
@@ -419,7 +438,12 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
       lockedTxRef.current = TX;
 
       // Vertical content extent (screen px) and the resulting legal ty range.
-      const slots = renderNodes.map(d => timelineY.get(d.data.id) ?? 0);
+      // Filter out any NaN values defensively (would break Math.min/max and
+      // cascade into NaN tyBounds, silently disabling the constrain clamp).
+      const slots = renderNodes
+        .map(d => timelineY.get(d.data.id))
+        .filter((v): v is number => v !== undefined && Number.isFinite(v));
+      if (!slots.length) return;
       const minS = Math.min(...slots) * K;
       const maxS = Math.max(...slots) * K;
       const M = 80; // top/bottom breathing room
