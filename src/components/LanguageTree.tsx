@@ -493,13 +493,28 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
     }
 
     // ── Links — enter / update / exit ─────────────────────────────────────────
+    // A source is "pre-timeline" when its true linguistic date predates our axis
+    // (TIMELINE_MIN_YEAR = -5000). Because yearScale clamps, these parents render
+    // at the left wall and produce misleading horizontal lines across the canvas.
+    const srcIsPreTimeline = (d: d3.HierarchyPointLink<Language>) => {
+      if (!yearScale) return false;
+      const yr = parseEarliestYear((d.source as d3.HierarchyPointNode<Language>).data.approxDate);
+      return yr === null || yr < TIMELINE_MIN_YEAR;
+    };
+
+    const ANCIENT_TAIL = 24; // px of stub drawn to the left of the child node
+
     const linkPathFn = (d: d3.HierarchyPointLink<Language>) => {
       const sp = getPos(d.source as d3.HierarchyPointNode<Language>);
       const tp = getPos(d.target as d3.HierarchyPointNode<Language>);
       if (yearScale) {
-        // Orthogonal elbow: branch point at the parent's year (vertical segment),
-        // then a horizontal segment out to the child. Crossing-free because each
-        // node owns a unique slot and subtrees occupy disjoint slot-bands.
+        if (srcIsPreTimeline(d)) {
+          // Parent predates axis: draw a short open-ended stub pointing left from
+          // the child to indicate it emerges from deep, off-screen history rather
+          // than stretching an artificial line all the way to the 5000 BCE wall.
+          return `M${tp.y - ANCIENT_TAIL},${tp.x}L${tp.y},${tp.x}`;
+        }
+        // Normal orthogonal elbow: branch at parent's year, then out to child.
         return `M${sp.y},${sp.x}L${sp.y},${tp.x}L${tp.y},${tp.x}`;
       }
       const mx = (sp.y + tp.y) / 2;
@@ -521,9 +536,10 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
 
     linkEnter.merge(linkSel)
       .transition(trans)
-      .style('opacity', 1)
+      .style('opacity', d => (yearScale && srcIsPreTimeline(d)) ? 0.35 : 1)
       .attr('fill', 'none')
       .attr('d', linkPathFn)
+      .attr('stroke-dasharray', d => (yearScale && srcIsPreTimeline(d)) ? '3,3' : null)
       .attr('stroke', d => {
         const hi = isAncestor(d.source as d3.HierarchyPointNode<Language>, selectedId) || isAncestor(d.target as d3.HierarchyPointNode<Language>, selectedId);
         return hi ? 'rgba(197,160,89,0.7)' : 'rgba(197,160,89,0.18)';
