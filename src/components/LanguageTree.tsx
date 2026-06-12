@@ -817,6 +817,26 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
         .attr('height', dimensions.height)
         .attr('fill', d => d.color);
 
+      // Horizontal zebra lanes — ultra-faint alternating rows across the full
+      // viewport height, spaced 120px apart. They give the eye a natural horizon
+      // guide while panning through deep time without competing with content.
+      // Generated into a flat number array (lane top y values) so D3's data join
+      // can key them by index and skip removes when height hasn't changed.
+      const LANE_STEP = 120;
+      const laneCount = Math.ceil(dimensions.height / LANE_STEP);
+      const laneTops = Array.from({ length: Math.ceil(laneCount / 2) }, (_, i) => i * LANE_STEP * 2);
+      const lanes = eraG.selectAll<SVGRectElement, number>('rect.zebra-lane')
+        .data(laneTops);
+      lanes.enter().append('rect').attr('class', 'zebra-lane')
+        .style('pointer-events', 'none')
+        .merge(lanes)
+        .attr('x', 0)
+        .attr('y', d => d)
+        .attr('width', dimensions.width)
+        .attr('height', LANE_STEP)
+        .attr('fill', 'rgba(255,255,255,0.006)');
+      lanes.exit().remove();
+
       const eraLabels = eraG.selectAll<SVGTextElement, typeof HISTORICAL_ERAS[number]>('text.era-label')
         .data(HISTORICAL_ERAS, d => d.id);
       eraLabels.enter().append('text')
@@ -1023,12 +1043,12 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
       .attr('stroke', d => {
         if (linkInLineage(d)) return 'rgba(255,216,107,0.95)';
         const hi = isAncestor(d.source as d3.HierarchyPointNode<Language>, selectedId) || isAncestor(d.target as d3.HierarchyPointNode<Language>, selectedId);
-        return hi ? 'rgba(197,160,89,0.7)' : 'rgba(197,160,89,0.18)';
+        return hi ? 'rgba(224,216,204,0.55)' : 'rgba(224,216,204,0.12)';
       })
       .attr('stroke-width', d => {
         if (linkInLineage(d)) return 2.5;
         const hi = isAncestor(d.source as d3.HierarchyPointNode<Language>, selectedId) || isAncestor(d.target as d3.HierarchyPointNode<Language>, selectedId);
-        return hi ? 2 : 1;
+        return hi ? 1.5 : 1;
       });
 
     // ── Nodes — enter / update / exit ─────────────────────────────────────────
@@ -1048,10 +1068,13 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
       .attr('class', 'glow-ring').attr('r', 14).attr('fill', 'none')
       .attr('stroke', 'rgba(197,160,89,0.15)').attr('stroke-width', 8);
 
+    // lbl-bg: charcoal halo behind the foreground label. stroke-color matches
+    // the new canvas background exactly so it cuts cleanly through link lines.
     nodeEnter.append('text').attr('class', 'lbl-bg')
-      .attr('stroke', '#0a0a0a').attr('stroke-width', 4).attr('stroke-linejoin', 'round')
-      .style('font-family', '"Playfair Display", serif')
-      .style('font-style', 'italic').style('letter-spacing', '0.04em').attr('fill', 'none');
+      .attr('fill', 'none')
+      .attr('stroke', '#0d0d11').attr('stroke-width', 3)
+      .attr('stroke-linecap', 'round').attr('stroke-linejoin', 'round')
+      .attr('paint-order', 'stroke fill');
 
     nodeEnter.append('circle').attr('class', 'main-circle');
 
@@ -1060,9 +1083,7 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
       .style('font-family', 'monospace').style('font-weight', 'bold')
       .style('pointer-events', 'none').style('user-select', 'none');
 
-    nodeEnter.append('text').attr('class', 'lbl-fg')
-      .style('font-family', '"Playfair Display", serif')
-      .style('font-style', 'italic').style('letter-spacing', '0.04em');
+    nodeEnter.append('text').attr('class', 'lbl-fg');
 
     // ── Merge enter + existing, apply transitions ─────────────────────────────
     const nodeAll = nodeEnter.merge(nodeSel);
@@ -1078,14 +1099,18 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
 
     animate<SVGCircleElement, d3.HierarchyPointNode<Language>>(nodeAll.select<SVGCircleElement>('.main-circle'))
       .attr('r', r)
-      .attr('fill', d => isSel(d) ? '#c5a059' : isRoot(d) ? '#1a1308' : '#0a0a0a')
-      // Vivid treatment for the illuminated ancestral chain while focused.
-      .attr('stroke', d => (lineageIds !== null && inLineage(d)) ? '#ffd86b' : '#c5a059')
+      .attr('fill', d => isSel(d) ? '#ffd86b' : isRoot(d) ? '#1a1308' : '#0d0d11')
+      // Gold exclusively for selected, lineage, and root; plain parchment otherwise.
+      .attr('stroke', d =>
+        isSel(d) ? '#ffd86b'
+        : (lineageIds !== null && inLineage(d)) ? '#ffd86b'
+        : isRoot(d) ? 'rgba(224,216,204,0.7)'
+        : 'rgba(224,216,204,0.35)')
       .attr('stroke-width', d => isSel(d) ? 3 : (lineageIds !== null && inLineage(d)) ? 2.2 : isRoot(d) ? 2 : 1.2)
       .style('filter', d =>
-        isSel(d)   ? 'drop-shadow(0 0 8px rgba(197,160,89,0.8))'
+        isSel(d)   ? 'drop-shadow(0 0 8px rgba(255,216,107,0.8))'
         : (lineageIds !== null && inLineage(d)) ? 'drop-shadow(0 0 6px rgba(255,216,107,0.6))'
-        : isRoot(d) ? 'drop-shadow(0 0 4px rgba(197,160,89,0.3))'
+        : isRoot(d) ? 'drop-shadow(0 0 4px rgba(224,216,204,0.2))'
         : 'none');
 
     nodeAll.select<SVGTextElement>('.expand-icon')
@@ -1112,8 +1137,31 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
     const labelAnchor = (d: d3.HierarchyPointNode<Language>) =>
       yearScale ? (flipLabel(d) ? 'end' : 'start') : d.children ? 'end' : 'start';
 
-    const applyLabel = (sel: d3.Selection<SVGTextElement, d3.HierarchyPointNode<Language>, SVGGElement, unknown>) =>
+    // Typographic hierarchy: ancestral/proto nodes keep the sweeping Playfair
+    // italic; modern living languages (leaves with a year ≥ 1500 CE, or leaf
+    // nodes in tree mode) switch to upright JetBrains Mono to break italic
+    // fatigue and signal "this language is still spoken / recently attested".
+    const isModernLeaf = (d: d3.HierarchyPointNode<Language>) => {
+      if (hasCh(d)) return false;                        // branch nodes stay serif
+      const yr = parseEarliestYear(d.data.approxDate);
+      return yr === null || yr >= 1500;                  // unknown date → treat as modern
+    };
+
+    const applyTypography = (sel: d3.Selection<SVGTextElement, d3.HierarchyPointNode<Language>, SVGGElement, unknown>) =>
       sel
+        .style('font-family', d =>
+          isRoot(d) || !isModernLeaf(d)
+            ? '"Playfair Display", serif'
+            : '"JetBrains Mono", monospace')
+        .style('font-style', d =>
+          isRoot(d) || !isModernLeaf(d) ? 'italic' : 'normal')
+        .style('font-weight', d =>
+          isModernLeaf(d) && !isRoot(d) ? '400' : 'normal')
+        .style('letter-spacing', d =>
+          isModernLeaf(d) && !isRoot(d) ? '0.01em' : '0.04em');
+
+    const applyLabel = (sel: d3.Selection<SVGTextElement, d3.HierarchyPointNode<Language>, SVGGElement, unknown>) =>
+      applyTypography(sel)
         .attr('dy', '0.31em')
         .attr('x', labelX)
         .attr('text-anchor', labelAnchor)
@@ -1122,8 +1170,14 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
 
     applyLabel(nodeAll.select<SVGTextElement>('.lbl-bg'));
     applyLabel(nodeAll.select<SVGTextElement>('.lbl-fg'))
-      .style('fill', d => isSel(d) ? '#c5a059' : isRoot(d) ? '#d4bc8a' : '#e0d8cc')
-      .style('opacity', d => isSel(d) ? 1 : 0.85);
+      // Gold reserved for the selected node only; roots get warm parchment;
+      // lineage-lit nodes get a slightly brighter parchment; rest are normal.
+      .style('fill', d =>
+        isSel(d) ? '#ffd86b'
+        : isRoot(d) ? '#e8dfc8'
+        : (lineageIds !== null && inLineage(d)) ? '#f0e8d8'
+        : '#e0d8cc')
+      .style('opacity', d => isSel(d) ? 1 : 0.88);
 
     // ── Search highlight ring (nested per-node) ───────────────────────────────
     // Lives inside the highlighted node's <g> so it shares its local coordinate
@@ -1188,7 +1242,7 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
     ((yr - TIMELINE_MIN_YEAR) / (TIMELINE_MAX_YEAR - TIMELINE_MIN_YEAR)) * 100;
 
   return (
-    <div ref={containerRef} className="w-full h-full relative overflow-hidden" style={{ background: '#0a0a0a' }}>
+    <div ref={containerRef} className="w-full h-full relative overflow-hidden" style={{ background: '#0d0d11' }}>
       <svg ref={svgRef} className="w-full h-full">
         {/* Era backdrop layer. Declared in JSX so it is the FIRST child of the
             svg — the D3-appended zoom-bg rect and tree-root group land after it
