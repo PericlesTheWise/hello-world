@@ -31,11 +31,12 @@ export const TIMELINE_MAX_YEAR = 2025;
 // outside the timeline domain are clamped by yearScale, so the Modern band's
 // 2026 end simply pins to the right edge of the axis.
 const HISTORICAL_ERAS = [
-  { id: 'bronze-age', label: 'Bronze Age', start: -3000, end: -1200, color: 'rgba(255, 216, 107, 0.015)' },
-  { id: 'classical-antiquity', label: 'Classical Antiquity', start: -1200, end: 500, color: 'rgba(255, 255, 255, 0.008)' },
-  { id: 'middle-ages', label: 'Middle Ages', start: 500, end: 1500, color: 'rgba(255, 216, 107, 0.015)' },
-  { id: 'early-modern', label: 'Early Modern Era', start: 1500, end: 1800, color: 'rgba(255, 255, 255, 0.008)' },
-  { id: 'modern', label: 'Modern Era', start: 1800, end: 2026, color: 'rgba(255, 216, 107, 0.015)' },
+  { id: 'prehistory', label: 'Prehistory', start: -6000, end: -3000, color: 'rgba(255, 255, 255, 0.01)' },
+  { id: 'bronze-age', label: 'Bronze Age', start: -3000, end: -1200, color: 'rgba(255, 216, 107, 0.02)' },
+  { id: 'classical-antiquity', label: 'Classical Antiquity', start: -1200, end: 500, color: 'rgba(255, 255, 255, 0.015)' },
+  { id: 'middle-ages', label: 'Middle Ages', start: 500, end: 1500, color: 'rgba(255, 216, 107, 0.02)' },
+  { id: 'early-modern', label: 'Early Modern Era', start: 1500, end: 1800, color: 'rgba(255, 255, 255, 0.015)' },
+  { id: 'modern', label: 'Modern Era', start: 1800, end: 2026, color: 'rgba(255, 216, 107, 0.02)' },
 ];
 
 function parseEarliestYear(approxDate?: string | number | null): number | null {
@@ -826,10 +827,10 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
         .style('font-size', '10px')
         .style('letter-spacing', '0.15em')
         .style('fill', '#e0d8cc')
-        .style('opacity', 0.15)
+        .style('opacity', 0.40)
         .merge(eraLabels)
         .attr('x', d => (eraX(d.start) + eraX(d.end)) / 2)
-        .attr('y', 22)
+        .attr('y', 75)
         .text(d => d.label.toUpperCase());
     }
 
