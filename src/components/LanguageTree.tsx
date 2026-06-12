@@ -959,6 +959,22 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
     const isExp   = (d: d3.HierarchyPointNode<Language>) => expandedIds.has(d.data.id);
     const r       = (d: d3.HierarchyPointNode<Language>) => isSel(d) ? 9 : isRoot(d) ? 7 : hasCh(d) ? 6 : 4;
 
+    // ── Vitality matrix ───────────────────────────────────────────────────────
+    // Leaf taxonomy for the extinction/survival treatment:
+    //   Living leaf   — no children AND (date ≥ 1500 CE or date unknown).
+    //   Extinct leaf  — no children AND date < 1500 CE (Gothic, Tocharian B…).
+    //   Branch/proto  — has children; keeps solid styling so the structural
+    //                   backbone of each family never visually fragments.
+    const isExtinctLeaf = (d: d3.HierarchyPointNode<Language>) => {
+      if (hasCh(d)) return false;
+      const yr = parseEarliestYear(d.data.approxDate);
+      return yr !== null && yr < 1500;
+    };
+    // Active interaction states (selection / lineage trace) re-ignite an
+    // extinct node to full intensity, overriding the archival dimming.
+    const vitalityOverridden = (d: d3.HierarchyPointNode<Language>) =>
+      isSel(d) || (lineageIds !== null && lineageIds.has(d.data.id));
+
     // ── Growth-front vertical marker ──────────────────────────────────────────
     // Rendered inside the zoom group so it stays pixel-aligned with the nodes
     // as the user pans/zooms. The tick-labelled axis lives in HTML (see JSX)
@@ -1100,13 +1116,19 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
     animate<SVGCircleElement, d3.HierarchyPointNode<Language>>(nodeAll.select<SVGCircleElement>('.main-circle'))
       .attr('r', r)
       .attr('fill', d => isSel(d) ? '#ffd86b' : isRoot(d) ? '#1a1308' : '#0d0d11')
-      // Gold exclusively for selected, lineage, and root; plain parchment otherwise.
+      // Gold exclusively for selected + lineage; extinct leaves get a hollow,
+      // desaturated archival ring; living leaves & branches stay solid parchment.
       .attr('stroke', d =>
         isSel(d) ? '#ffd86b'
         : (lineageIds !== null && inLineage(d)) ? '#ffd86b'
         : isRoot(d) ? 'rgba(224,216,204,0.7)'
+        : isExtinctLeaf(d) ? 'rgba(224,216,204,0.40)'
         : 'rgba(224,216,204,0.35)')
       .attr('stroke-width', d => isSel(d) ? 3 : (lineageIds !== null && inLineage(d)) ? 2.2 : isRoot(d) ? 2 : 1.2)
+      // Dashed ring marks an extinct/historical leaf — suppressed the moment the
+      // node is selected or lit by the Ancestral Path Tracer (solid gold wins).
+      .attr('stroke-dasharray', d =>
+        isExtinctLeaf(d) && !vitalityOverridden(d) ? '3,2' : null)
       .style('filter', d =>
         isSel(d)   ? 'drop-shadow(0 0 8px rgba(255,216,107,0.8))'
         : (lineageIds !== null && inLineage(d)) ? 'drop-shadow(0 0 6px rgba(255,216,107,0.6))'
@@ -1168,7 +1190,18 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
         .text(d => d.data.name)
         .style('font-size', d => isRoot(d) ? `${fontSize + 2}px` : `${fontSize}px`);
 
-    applyLabel(nodeAll.select<SVGTextElement>('.lbl-bg'));
+    // Extinct/historical leaves recede to a "ghostly archive" 0.5 opacity on
+    // BOTH text layers (halo included, so its carve-out softens in step).
+    // Selection or lineage focus re-ignites them to full visibility.
+    const labelOpacity = (d: d3.HierarchyPointNode<Language>) => {
+      if (isSel(d)) return 1;
+      if (vitalityOverridden(d)) return 1;
+      if (isExtinctLeaf(d)) return 0.5;
+      return 0.88;
+    };
+
+    applyLabel(nodeAll.select<SVGTextElement>('.lbl-bg'))
+      .style('opacity', labelOpacity);
     applyLabel(nodeAll.select<SVGTextElement>('.lbl-fg'))
       // Gold reserved for the selected node only; roots get warm parchment;
       // lineage-lit nodes get a slightly brighter parchment; rest are normal.
@@ -1177,7 +1210,7 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
         : isRoot(d) ? '#e8dfc8'
         : (lineageIds !== null && inLineage(d)) ? '#f0e8d8'
         : '#e0d8cc')
-      .style('opacity', d => isSel(d) ? 1 : 0.88);
+      .style('opacity', labelOpacity);
 
     // ── Search highlight ring (nested per-node) ───────────────────────────────
     // Lives inside the highlighted node's <g> so it shares its local coordinate
