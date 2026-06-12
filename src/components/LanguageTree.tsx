@@ -827,10 +827,16 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
         .style('font-size', '10px')
         .style('letter-spacing', '0.15em')
         .style('fill', '#e0d8cc')
-        .style('opacity', 0.40)
         .merge(eraLabels)
         .attr('x', d => (eraX(d.start) + eraX(d.end)) / 2)
         .attr('y', 75)
+        // Responsive width gate: hide a label entirely once its band column
+        // contracts below 120px on screen, so neighbouring names can never
+        // overlap when zoomed out (behaves like native map topology labels).
+        .style('opacity', d => {
+          const bandWidth = (yearScale(d.end) - yearScale(d.start)) * eraK;
+          return bandWidth < 120 ? 0 : 0.40;
+        })
         .text(d => d.label.toUpperCase());
     }
 
