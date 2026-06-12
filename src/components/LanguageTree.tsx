@@ -987,6 +987,13 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
     // append once here — no conditional "already exists" guard is needed.
     // cx/cy are deliberately 0 so the circles sit at the node's local origin;
     // the parent <g> transform is what positions them on the canvas.
+    //
+    // The pulse loop is driven by native D3 transitions on r/opacity instead of
+    // CSS @keyframes: CSS transform: scale() on an SVG circle resolves
+    // transform-origin against the viewport (absent transform-box: fill-box) and
+    // the browser may hoist the animated element to its own compositor layer,
+    // detaching the ring from the node while it moves and the camera pans.
+    // Attribute transitions stay in the SVG coordinate pipeline, immune to both.
     if (highlightedNodeId) {
       const hl = nodeAll.filter(d => d.data.id === highlightedNodeId);
       // Steady inner ring (glow), inserted behind the main circle.
@@ -996,12 +1003,29 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
         .attr('r', d => r(d) + 4).attr('fill', 'none')
         .attr('stroke', '#ffd86b').attr('stroke-width', 2)
         .style('filter', 'drop-shadow(0 0 6px rgba(255,216,107,0.9))');
-      // Outer expanding/fading pulse ring driven by @keyframes search-pulse.
-      hl.insert('circle', '.main-circle')
+      // Outer pulse: expands from the node edge and fades, then restarts. The
+      // 'end' handler only re-arms while the circle is still in the DOM, so the
+      // global wipe at the top of this effect (remove() interrupts any active
+      // transition) cleanly extinguishes the loop.
+      const pulseCircle = hl.insert<SVGCircleElement>('circle', '.main-circle')
         .attr('class', 'search-pulse-ring')
         .attr('cx', 0).attr('cy', 0)
-        .attr('r', d => r(d) + 4).attr('fill', 'none')
+        .attr('fill', 'none')
         .attr('stroke', '#ffd86b').attr('stroke-width', 2.5);
+      function runPulse(selection: d3.Selection<SVGCircleElement, d3.HierarchyPointNode<Language>, d3.BaseType, unknown>) {
+        selection
+          .attr('r', d => r(d) + 2)
+          .style('opacity', 0.9)
+          .transition('search-pulse')
+          .duration(1400)
+          .ease(d3.easeQuadOut)
+          .attr('r', d => r(d) + 22)
+          .style('opacity', 0)
+          .on('end', function () {
+            if (this.parentNode) d3.select<SVGCircleElement, d3.HierarchyPointNode<Language>>(this).call(runPulse);
+          });
+      }
+      pulseCircle.call(runPulse);
     }
   }, [visibleLanguages, expandedIds, dimensions, selectedId, fontSize, childrenMap, viewMode, currentYear, fitNonce, highlightedNodeId]);
 
