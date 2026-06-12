@@ -278,12 +278,41 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
   // Whether the slide-out filter panel is open.
   const [filterOpen, setFilterOpen] = useState(false);
 
-  // On a genuine dataset change (new families appear), reset selection to all.
-  // Skip the first run so we don't clobber the lazy-initialised set on mount.
+  // Tracks every family id we have ever presented to the user so we can
+  // distinguish "user explicitly disabled" (seen + absent from enabledFamilyIds)
+  // from "brand-new family in an updated dataset" (never seen before). Updated
+  // on mount and on every subsequent dataset reconciliation.
+  const knownFamilyIdsRef = useRef<Set<string>>(new Set());
+
+  // On a genuine dataset change (primaryFamilies reference changes), reconcile
+  // enabledFamilyIds while preserving the user's custom toggles:
+  //   • Brand-new family id  → auto-enable (user hasn't had a chance to choose).
+  //   • Previously seen, was on  → keep on.
+  //   • Previously seen, was off → keep off (user's explicit choice).
+  //   • Disappeared from dataset → silently drop (no nodes to show anyway).
+  // Skip the very first run (mount) so we don't clobber the lazy-init set.
   const familiesInitRef = useRef(true);
   useEffect(() => {
-    if (familiesInitRef.current) { familiesInitRef.current = false; return; }
-    setEnabledFamilyIds(new Set(primaryFamilies.map(f => f.id)));
+    if (familiesInitRef.current) {
+      familiesInitRef.current = false;
+      // Record the initial family universe so subsequent reconciliations can
+      // tell new arrivals from user-disabled families.
+      for (const f of primaryFamilies) knownFamilyIdsRef.current.add(f.id);
+      return;
+    }
+    setEnabledFamilyIds(prev => {
+      const next = new Set<string>();
+      for (const f of primaryFamilies) {
+        if (!knownFamilyIdsRef.current.has(f.id)) {
+          next.add(f.id);       // brand-new → default on
+        } else if (prev.has(f.id)) {
+          next.add(f.id);       // user had it on → keep on
+        }
+        // user had it off (seen but not in prev) → omit → stays off
+        knownFamilyIdsRef.current.add(f.id);
+      }
+      return next;
+    });
   }, [primaryFamilies]);
 
   const toggleFamily = useCallback((id: string) => {
