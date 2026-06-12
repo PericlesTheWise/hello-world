@@ -358,6 +358,12 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
   const [highlightedNodeId, setHighlightedNodeId] = useState<string | null>(null);
   useEffect(() => { highlightedNodeIdRef.current = highlightedNodeId; }, [highlightedNodeId]);
 
+  // ── Ancestral Path Tracer (lineage isolation) ───────────────────────────────
+  // Set when a node is clicked or chosen via search; cleared by clicking the
+  // empty canvas background. While set, the node's ancestor chain stays at full
+  // opacity with a vivid treatment and everything else dims to 0.1.
+  const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null);
+
   // id → parent id, and id → display name, for ancestor-expansion and the
   // "Name (Family)" result label respectively.
   const parentOfMap = useMemo(
@@ -368,6 +374,20 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
     () => new Map(safeLanguages.map(l => [l.id, l.name])),
     [safeLanguages]
   );
+
+  // The focused node plus every ancestor up to its family root. null = no focus
+  // (everything renders at normal opacity). The walk is cycle-safe because
+  // sanitizeLanguages already broke cycles, but the visited guard costs nothing.
+  const lineageIds = useMemo(() => {
+    if (!focusedNodeId) return null;
+    const set = new Set<string>([focusedNodeId]);
+    let cur = parentOfMap.get(focusedNodeId) ?? null;
+    while (cur != null && !set.has(cur)) {
+      set.add(cur);
+      cur = parentOfMap.get(cur) ?? null;
+    }
+    return set;
+  }, [focusedNodeId, parentOfMap]);
 
   // Fuzzy, case-insensitive ranking against the FULL sanitized dataset so hidden
   // families are still findable. Each result carries a `hidden` flag when its
@@ -443,6 +463,7 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
     }
     onSelect(lang);
     setHighlightedNodeId(lang.id);
+    setFocusedNodeId(lang.id);
     pendingPanRef.current = lang.id;
     setSearchQuery('');
   }, [familyOf, parentOfMap, viewMode, onYearChange, currentYear, onSelect]);
@@ -465,6 +486,7 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
         return next;
       });
     }
+    setFocusedNodeId(lang.id);
     onSelect(lang);
   }, [childrenMap, onSelect]);
 
@@ -712,9 +734,13 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
         });
       svg.call(zoomRef.current);
 
-      // Click on empty canvas (the full-size hit rect) clears the search highlight.
+      // Click on empty canvas (the full-size hit rect) clears the search
+      // highlight AND the lineage focus, restoring full-opacity rendering.
+      // setFocusedNodeId is called unconditionally — React bails out when the
+      // value is already null, so this is free in the common case.
       svg.select<SVGRectElement>('rect.zoom-bg').on('click', () => {
         if (highlightedNodeIdRef.current) setHighlightedNodeId(null);
+        setFocusedNodeId(null);
       });
 
       // Vertical-only scroll for the timeline: wheel/trackpad updates ONLY ty,
@@ -908,16 +934,29 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
       .attr('class', 'link').attr('fill', 'none')
       .attr('d', linkPathFn).style('opacity', 0);
 
+    // Lineage isolation: a link is "on the ancestral path" only when BOTH of
+    // its endpoints belong to the focused lineage (parent→child steps of the
+    // chain). With a focus active, everything else melts down to 0.1 opacity.
+    const linkInLineage = (d: d3.HierarchyPointLink<Language>) =>
+      lineageIds !== null &&
+      lineageIds.has((d.source as d3.HierarchyPointNode<Language>).data.id) &&
+      lineageIds.has((d.target as d3.HierarchyPointNode<Language>).data.id);
+
     animate<SVGPathElement, d3.HierarchyPointLink<Language>>(linkEnter.merge(linkSel))
-      .style('opacity', d => (yearScale && srcIsPreTimeline(d)) ? 0.35 : 1)
+      .style('opacity', d => {
+        if (lineageIds !== null && !linkInLineage(d)) return 0.1;
+        return (yearScale && srcIsPreTimeline(d)) ? 0.35 : 1;
+      })
       .attr('fill', 'none')
       .attr('d', linkPathFn)
       .attr('stroke-dasharray', d => (yearScale && srcIsPreTimeline(d)) ? '3,3' : null)
       .attr('stroke', d => {
+        if (linkInLineage(d)) return 'rgba(255,216,107,0.95)';
         const hi = isAncestor(d.source as d3.HierarchyPointNode<Language>, selectedId) || isAncestor(d.target as d3.HierarchyPointNode<Language>, selectedId);
         return hi ? 'rgba(197,160,89,0.7)' : 'rgba(197,160,89,0.18)';
       })
       .attr('stroke-width', d => {
+        if (linkInLineage(d)) return 2.5;
         const hi = isAncestor(d.source as d3.HierarchyPointNode<Language>, selectedId) || isAncestor(d.target as d3.HierarchyPointNode<Language>, selectedId);
         return hi ? 2 : 1;
       });
@@ -958,17 +997,24 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
     // ── Merge enter + existing, apply transitions ─────────────────────────────
     const nodeAll = nodeEnter.merge(nodeSel);
 
+    // Lineage isolation for nodes: dimming the whole <g> fades the circle,
+    // expand icon, and both label layers together in a single transition.
+    const inLineage = (d: d3.HierarchyPointNode<Language>) =>
+      lineageIds === null || lineageIds.has(d.data.id);
+
     animate<SVGGElement, d3.HierarchyPointNode<Language>>(nodeAll)
-      .style('opacity', 1)
+      .style('opacity', d => inLineage(d) ? 1 : 0.1)
       .attr('transform', d => { const p = getPos(d); return `translate(${p.y},${p.x})`; });
 
     animate<SVGCircleElement, d3.HierarchyPointNode<Language>>(nodeAll.select<SVGCircleElement>('.main-circle'))
       .attr('r', r)
       .attr('fill', d => isSel(d) ? '#c5a059' : isRoot(d) ? '#1a1308' : '#0a0a0a')
-      .attr('stroke', '#c5a059')
-      .attr('stroke-width', d => isSel(d) ? 3 : isRoot(d) ? 2 : 1.2)
+      // Vivid treatment for the illuminated ancestral chain while focused.
+      .attr('stroke', d => (lineageIds !== null && inLineage(d)) ? '#ffd86b' : '#c5a059')
+      .attr('stroke-width', d => isSel(d) ? 3 : (lineageIds !== null && inLineage(d)) ? 2.2 : isRoot(d) ? 2 : 1.2)
       .style('filter', d =>
         isSel(d)   ? 'drop-shadow(0 0 8px rgba(197,160,89,0.8))'
+        : (lineageIds !== null && inLineage(d)) ? 'drop-shadow(0 0 6px rgba(255,216,107,0.6))'
         : isRoot(d) ? 'drop-shadow(0 0 4px rgba(197,160,89,0.3))'
         : 'none');
 
@@ -1056,7 +1102,7 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
       }
       pulseCircle.call(runPulse);
     }
-  }, [visibleLanguages, expandedIds, dimensions, selectedId, fontSize, childrenMap, viewMode, currentYear, fitNonce, highlightedNodeId]);
+  }, [visibleLanguages, expandedIds, dimensions, selectedId, fontSize, childrenMap, viewMode, currentYear, fitNonce, highlightedNodeId, lineageIds]);
 
   // After the layout effect has repopulated nodePosRef, execute any queued pan.
   // If the target isn't positioned yet (e.g. the scrubber is still advancing to
