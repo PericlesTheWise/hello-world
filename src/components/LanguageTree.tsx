@@ -26,6 +26,18 @@ const TRANSITION_MS = 280;
 export const TIMELINE_MIN_YEAR = -5000;
 export const TIMELINE_MAX_YEAR = 2025;
 
+// Chronological era backdrop bands for the timeline view. Rendered behind the
+// links/nodes via the era-bands-group <g> (first child of the SVG). Years
+// outside the timeline domain are clamped by yearScale, so the Modern band's
+// 2026 end simply pins to the right edge of the axis.
+const HISTORICAL_ERAS = [
+  { id: 'bronze-age', label: 'Bronze Age', start: -3000, end: -1200, color: 'rgba(255, 216, 107, 0.015)' },
+  { id: 'classical-antiquity', label: 'Classical Antiquity', start: -1200, end: 500, color: 'rgba(255, 255, 255, 0.008)' },
+  { id: 'middle-ages', label: 'Middle Ages', start: 500, end: 1500, color: 'rgba(255, 216, 107, 0.015)' },
+  { id: 'early-modern', label: 'Early Modern Era', start: 1500, end: 1800, color: 'rgba(255, 255, 255, 0.008)' },
+  { id: 'modern', label: 'Modern Era', start: 1800, end: 2026, color: 'rgba(255, 216, 107, 0.015)' },
+];
+
 function parseEarliestYear(approxDate?: string | number | null): number | null {
   if (approxDate == null) return null;
   // Some datasets store the year as a plain number.
@@ -533,12 +545,17 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
       .remove();
 
     // All families disabled (or nothing visible): clear the canvas so no stale
-    // nodes/links linger behind the empty-state overlay, then bail.
+    // nodes/links linger behind the empty-state overlay, then bail. The era
+    // backdrop only persists in timeline mode (it is data-independent); in tree
+    // mode it must go since the main era code below is never reached.
     if (visibleLanguages.length === 0) {
       if (gRef.current) {
         gRef.current.selectAll('path.link').remove();
         gRef.current.selectAll('g.node').remove();
         gRef.current.selectAll('g.growth-front').remove();
+      }
+      if (viewMode !== 'timeline') {
+        d3.select(svgRef.current).select('g.era-bands-group').selectAll('*').remove();
       }
       return;
     }
@@ -769,6 +786,52 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
     svg.select<SVGRectElement>('rect.zoom-bg')
       .attr('width', dimensions.width)
       .attr('height', dimensions.height);
+
+    // ── Chronological era bands (timeline backdrop) ───────────────────────────
+    // The era-bands-group lives in SCREEN space (outside the zoom group). That
+    // is correct for the timeline because its horizontal axis is locked — a
+    // year's on-screen x never changes — while vertical scrolling shouldn't
+    // move the backdrop anyway: bands always fill the full viewport height and
+    // their labels stay pinned near the top edge.
+    const eraG = svg.select<SVGGElement>('g.era-bands-group');
+    if (!yearScale) {
+      // Tree mode: wipe the backdrop so the free-form layout is unencumbered.
+      eraG.selectAll('*').remove();
+    } else {
+      // Same mapping the camera enforces for node positions:
+      //   screenX(year) = TX + yearScale(year) * K
+      const eraK = timelineK;
+      const eraTX = AXIS_HPAD - yearScale.range()[0] * eraK;
+      const eraX = (yr: number) => eraTX + yearScale(yr) * eraK;
+
+      const bands = eraG.selectAll<SVGRectElement, typeof HISTORICAL_ERAS[number]>('rect.era-band')
+        .data(HISTORICAL_ERAS, d => d.id);
+      bands.enter().append('rect')
+        .attr('class', 'era-band')
+        .style('pointer-events', 'none')
+        .merge(bands)
+        .attr('x', d => eraX(d.start))
+        .attr('y', 0)
+        .attr('width', d => Math.max(0, eraX(d.end) - eraX(d.start)))
+        .attr('height', dimensions.height)
+        .attr('fill', d => d.color);
+
+      const eraLabels = eraG.selectAll<SVGTextElement, typeof HISTORICAL_ERAS[number]>('text.era-label')
+        .data(HISTORICAL_ERAS, d => d.id);
+      eraLabels.enter().append('text')
+        .attr('class', 'era-label')
+        .attr('text-anchor', 'middle')
+        .style('pointer-events', 'none')
+        .style('font-family', '"JetBrains Mono", monospace')
+        .style('font-size', '10px')
+        .style('letter-spacing', '0.15em')
+        .style('fill', '#e0d8cc')
+        .style('opacity', 0.15)
+        .merge(eraLabels)
+        .attr('x', d => (eraX(d.start) + eraX(d.end)) / 2)
+        .attr('y', 22)
+        .text(d => d.label.toUpperCase());
+    }
 
     const g = gRef.current;
 
@@ -1119,7 +1182,13 @@ export const LanguageTree: React.FC<Props> = ({ languages, onSelect, selectedId,
 
   return (
     <div ref={containerRef} className="w-full h-full relative overflow-hidden" style={{ background: '#0a0a0a' }}>
-      <svg ref={svgRef} className="w-full h-full" />
+      <svg ref={svgRef} className="w-full h-full">
+        {/* Era backdrop layer. Declared in JSX so it is the FIRST child of the
+            svg — the D3-appended zoom-bg rect and tree-root group land after it
+            in document order, guaranteeing bands render behind links/nodes and
+            never intercept pointer events. Contents are managed by D3. */}
+        <g className="era-bands-group" />
+      </svg>
 
       {/* ── Global search overlay (top-left) ────────────────────────────────────
            Fuzzy-matches the active dataset as the user types; choosing a result
